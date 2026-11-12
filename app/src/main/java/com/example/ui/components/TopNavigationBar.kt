@@ -7,13 +7,16 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,6 +38,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.ActiveTab
@@ -55,18 +61,16 @@ fun TopNavigationBar(
     dailyProgress: DailyProgressState,
     themeMode: AppThemeMode,
     isSyncing: Boolean,
+    statusBarTopPadding: Dp = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
     onTabSelected: (ActiveTab) -> Unit,
     onThemeToggle: () -> Unit,
     onCloudSyncClick: () -> Unit,
     onOpenMenu: () -> Unit
 ) {
-    // Calculate top inset directly from the device status/notification bar
-    val statusBarTopPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    val isDark = MaterialTheme.colorScheme.background.red < 0.2f
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .wrapContentHeight()
             .background(MaterialTheme.colorScheme.background)
             .padding(
                 top = statusBarTopPadding + 8.dp,
@@ -79,6 +83,7 @@ fun TopNavigationBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .wrapContentHeight()
                 .padding(bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -101,15 +106,15 @@ fun TopNavigationBar(
                 ) {
                     if (isSyncing) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.primary
+                            color = CoralToday
                         )
                     } else {
                         Icon(
                             imageVector = Icons.Default.CloudSync,
                             contentDescription = "Bulut Senkronizasyonu",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -128,12 +133,12 @@ fun TopNavigationBar(
                     Icon(
                         imageVector = icon,
                         contentDescription = "Tema Değiştir",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(18.dp)
                     )
                 }
 
-                // 3. View Settings Menu Circular Button (moved next to Theme button)
+                // 3. View Settings Menu Circular Button (next to Theme button)
                 TopBarCircleButton(
                     onClick = onOpenMenu,
                     testTag = "top_menu_button"
@@ -148,19 +153,18 @@ fun TopNavigationBar(
             }
         }
 
-        // Standardized Segmented Tab Bar
-        val trackBackgroundColor = MaterialTheme.colorScheme.surfaceVariant
-
+        // Standardized Segmented Tab Bar — wraps content bounds dynamically via IntrinsicSize.Min
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(44.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(trackBackgroundColor)
+                .wrapContentHeight()
+                .height(IntrinsicSize.Min)
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .border(
                     width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.65f),
-                    shape = RoundedCornerShape(12.dp)
+                    color = MaterialTheme.colorScheme.outline,
+                    shape = RoundedCornerShape(14.dp)
                 )
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -169,8 +173,13 @@ fun TopNavigationBar(
             ActiveTab.entries.forEach { tab ->
                 val isSelected = currentTab == tab
 
+                // Distinct pill background that wraps the tab header content bounds
                 val pillBgColor by animateColorAsState(
-                    targetValue = if (isSelected) MaterialTheme.colorScheme.surface else Color.Transparent,
+                    targetValue = if (isSelected) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        Color.Transparent
+                    },
                     animationSpec = tween(durationMillis = 200),
                     label = "tab_bg_${tab.name}"
                 )
@@ -185,71 +194,69 @@ fun TopNavigationBar(
                     label = "tab_text_${tab.name}"
                 )
 
-                Box(
+                val interactionSource = remember { MutableInteractionSource() }
+
+                Row(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .clip(RoundedCornerShape(9.dp))
+                        .clip(RoundedCornerShape(10.dp))
                         .background(pillBgColor)
                         .then(
                             if (isSelected) {
                                 Modifier.border(
                                     width = 1.dp,
-                                    color = CoralToday.copy(alpha = 0.45f),
-                                    shape = RoundedCornerShape(9.dp)
+                                    color = CoralToday.copy(alpha = 0.6f),
+                                    shape = RoundedCornerShape(10.dp)
                                 )
                             } else {
                                 Modifier
                             }
                         )
-                        .clickable { onTabSelected(tab) }
-                        .padding(horizontal = 6.dp)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null
+                        ) { onTabSelected(tab) }
+                        .padding(horizontal = 10.dp, vertical = 9.dp)
                         .testTag("tab_${tab.name.lowercase()}"),
-                    contentAlignment = Alignment.Center
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = when (tab) {
-                                ActiveTab.FLOW -> "Akış"
-                                ActiveTab.CALENDAR -> "Takvim"
-                                ActiveTab.TODO -> "Görevler"
-                                ActiveTab.OVERVIEW -> "Özet"
-                            },
+                    Text(
+                        text = tab.title,
+                        style = MaterialTheme.typography.labelLarge.copy(
                             fontSize = 13.sp,
                             lineHeight = 16.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = textColor
-                        )
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = textColor
+                    )
 
-                        if (tab == ActiveTab.TODO && pendingTaskCount > 0) {
-                            Spacer(modifier = Modifier.width(5.dp))
-                            Box(
-                                modifier = Modifier
-                                    .size(18.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (isSelected) CoralToday
-                                        else MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "$pendingTaskCount",
-                                    fontSize = 10.sp,
-                                    lineHeight = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isSelected) {
-                                        Color.White
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurface
-                                    }
+                    if (tab == ActiveTab.TODO && pendingTaskCount > 0) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .background(
+                                    if (isSelected) CoralToday
+                                    else MaterialTheme.colorScheme.surface
                                 )
-                            }
+                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "$pendingTaskCount",
+                                fontSize = 10.sp,
+                                lineHeight = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSelected) {
+                                    Color.White
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                }
+                            )
                         }
                     }
                 }
@@ -264,17 +271,22 @@ private fun TopBarCircleButton(
     testTag: String,
     content: @Composable () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
-            .size(36.dp)
+            .defaultMinSize(minWidth = 38.dp, minHeight = 38.dp)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f),
+                color = MaterialTheme.colorScheme.outline,
                 shape = CircleShape
             )
-            .clickable { onClick() }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) { onClick() }
+            .padding(9.dp)
             .testTag(testTag),
         contentAlignment = Alignment.Center
     ) {
@@ -303,6 +315,7 @@ fun DailyTopProgressBar(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .wrapContentHeight()
             .testTag("top_daily_progress_bar")
     ) {
         Row(
@@ -329,7 +342,7 @@ fun DailyTopProgressBar(
                     },
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)
                 )
             }
 
@@ -344,7 +357,7 @@ fun DailyTopProgressBar(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // Hairline 4dp progress track
+        // Progress track
         Box(
             modifier = Modifier
                 .fillMaxWidth()
