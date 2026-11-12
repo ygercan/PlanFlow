@@ -11,7 +11,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.Date
 
+/**
+ * Repository that coordinates local Room SQLite persistence ([TaskDao]) and
+ * remote Supabase synchronization ([CloudSyncManager]), resolving conflicts
+ * by comparing `updated_at` timestamps (last-write-wins).
+ */
 class TaskRepository(
     private val taskDao: TaskDao,
     private val notificationHelper: NotificationHelper,
@@ -30,9 +36,12 @@ class TaskRepository(
 
     suspend fun insertTask(task: TaskEntity, syncImmediately: Boolean = true): Long {
         val now = System.currentTimeMillis()
+        val createdMs = if (task.createdAtMillis > 0) task.createdAtMillis else now
         val taskWithTimestamp = task.copy(
-            createdAtMillis = if (task.createdAtMillis > 0) task.createdAtMillis else now,
-            updatedAtMillis = now
+            createdAtMillis = createdMs,
+            updatedAtMillis = now,
+            createdAt = Date(createdMs),
+            updatedAt = Date(now)
         )
         val insertedId = taskDao.insertTask(taskWithTimestamp)
         var savedTask = taskWithTimestamp.copy(id = insertedId)
@@ -61,11 +70,15 @@ class TaskRepository(
             notificationHelper.cancelTaskReminder(currentTask.id)
         }
 
-        var taskToSave = task.copy(updatedAtMillis = System.currentTimeMillis())
+        val now = System.currentTimeMillis()
+        var taskToSave = task.copy(
+            updatedAtMillis = now,
+            updatedAt = Date(now)
+        )
 
         if (taskToSave.hasReminder && !taskToSave.isCompleted) {
             val reminderTime = calculateReminderTime(taskToSave)
-            if (reminderTime > System.currentTimeMillis()) {
+            if (reminderTime > now) {
                 taskToSave = taskToSave.copy(reminderScheduledTimeMillis = reminderTime)
                 notificationHelper.scheduleTaskReminder(taskToSave, reminderTime)
             }
@@ -97,7 +110,8 @@ class TaskRepository(
         val updatedTask = task.copy(
             isCompleted = newStatus,
             completedAtMillis = completedAt,
-            updatedAtMillis = now
+            updatedAtMillis = now,
+            updatedAt = Date(now)
         )
         taskDao.updateTask(updatedTask)
 
@@ -116,10 +130,55 @@ class TaskRepository(
     }
 
     /**
-     * İlk açılışta ve manuel senkronizasyonda çalışır:
-     * 1. Supabase'den son verileri çeker.
-     * 2. Yerel SQLite verileri ile updatedAtMillis karşılaştırması yapar (Son güncellenen kazanır).
-     * 3. Yerelde daha yeni olan veya Supabase'de eksik olan kayıtları Supabase'e gönderir.
+     * Pure deterministic conflict resolution comparing `updated_at` timestamps
+     * between local Room items and remote Supabase items.
+     */
+    data class ConflictResolutionPlan(
+        val itemsToSaveLocally: List<TaskEntity>,
+        val itemsToPushToSupabase: List<TaskEntity>
+    )
+
+    fun resolveConflictsByUpdatedAt(
+        localTasks: List<TaskEntity>,
+        remoteTasks: List<TaskEntity>
+    ): ConflictResolutionPlan {
+        val localMap = localTasks.associateBy { it.id }
+        val remoteMap = remoteTasks.associateBy { it.id }
+
+        val toSaveLocally = mutableListOf<TaskEntity>()
+        val toPushRemotely = mutableListOf<TaskEntity>()
+
+        // 1. Evaluate remote items against local items
+        for (remote in remoteTasks) {
+            val local = localMap[remote.id]
+            if (local == null) {
+                toSaveLocally.add(remote)
+            } else {
+                val remoteUpdated = remote.effectiveUpdatedAtMillis
+                val localUpdated = local.effectiveUpdatedAtMillis
+                if (remoteUpdated > localUpdated) {
+                    toSaveLocally.add(remote)
+                } else if (localUpdated > remoteUpdated) {
+                    toPushRemotely.add(local)
+                }
+            }
+        }
+
+        // 2. Any local item missing from remote should be pushed to Supabase
+        for (local in localTasks) {
+            if (!remoteMap.containsKey(local.id)) {
+                toPushRemotely.add(local)
+            }
+        }
+
+        return ConflictResolutionPlan(
+            itemsToSaveLocally = toSaveLocally,
+            itemsToPushToSupabase = toPushRemotely
+        )
+    }
+
+    /**
+     * Bidirectional Room <-> Supabase synchronization using [resolveConflictsByUpdatedAt].
      */
     suspend fun syncOnStartupOrDemand(): SyncResult {
         val (remoteTasks, fetchResult) = cloudSyncManager.fetchFromSupabase()
@@ -129,35 +188,12 @@ class TaskRepository(
             return fetchResult
         }
 
-        val localMap = localTasks.associateBy { it.id }
-        val remoteMap = remoteTasks.associateBy { it.id }
+        val resolution = resolveConflictsByUpdatedAt(localTasks, remoteTasks)
 
-        val tasksToSaveLocally = mutableListOf<TaskEntity>()
-        val tasksToPushRemotely = mutableListOf<TaskEntity>()
-
-        // 1. Uzaktaki görevleri yerel ile karşılaştır (Son güncellenen kazanır)
-        for (remoteTask in remoteTasks) {
-            val localTask = localMap[remoteTask.id]
-            if (localTask == null) {
-                tasksToSaveLocally.add(remoteTask)
-            } else if (remoteTask.updatedAtMillis > localTask.updatedAtMillis) {
-                tasksToSaveLocally.add(remoteTask)
-            } else if (localTask.updatedAtMillis > remoteTask.updatedAtMillis) {
-                tasksToPushRemotely.add(localTask)
-            }
-        }
-
-        // 2. Yerelde olup Supabase'de hiç olmayanları Supabase'e gönderilecekler listesine ekle
-        for (localTask in localTasks) {
-            if (!remoteMap.containsKey(localTask.id)) {
-                tasksToPushRemotely.add(localTask)
-            }
-        }
-
-        // 3. Yerel SQLite güncellemelerini uygula ve bildirim alarmlarını kur
-        if (tasksToSaveLocally.isNotEmpty()) {
-            taskDao.insertTasks(tasksToSaveLocally)
-            for (task in tasksToSaveLocally) {
+        // Apply newer remote records into local Room SQLite via Upsert
+        if (resolution.itemsToSaveLocally.isNotEmpty()) {
+            taskDao.upsertTasks(resolution.itemsToSaveLocally)
+            for (task in resolution.itemsToSaveLocally) {
                 if (task.hasReminder && !task.isCompleted) {
                     val reminderTime = calculateReminderTime(task)
                     if (reminderTime > System.currentTimeMillis()) {
@@ -169,15 +205,15 @@ class TaskRepository(
             }
         }
 
-        // 4. Yerelde daha güncel veya yeni olan görevleri Supabase'e gönder
-        if (tasksToPushRemotely.isNotEmpty()) {
-            cloudSyncManager.backupToSupabase(tasksToPushRemotely)
+        // Push newer or local-only records to Supabase
+        if (resolution.itemsToPushToSupabase.isNotEmpty()) {
+            cloudSyncManager.backupToSupabase(resolution.itemsToPushToSupabase)
         }
 
         val totalMerged = taskDao.getAllTasksDirect().size
         return SyncResult(
             true,
-            "Supabase senkronizasyonu tamamlandı ($totalMerged görev güncel, ${tasksToSaveLocally.size} indirildi, ${tasksToPushRemotely.size} gönderildi)."
+            "Supabase senkronizasyonu tamamlandı ($totalMerged görev güncel, ${resolution.itemsToSaveLocally.size} indirildi, ${resolution.itemsToPushToSupabase.size} gönderildi)."
         )
     }
 
@@ -198,7 +234,7 @@ class TaskRepository(
     suspend fun importJson(json: String): Boolean {
         val tasks = cloudSyncManager.parseTasksFromJson(json)
         if (tasks.isNotEmpty()) {
-            taskDao.insertTasks(tasks)
+            taskDao.upsertTasks(tasks)
             syncScope.launch {
                 cloudSyncManager.backupToSupabase(taskDao.getAllTasksDirect())
             }
@@ -231,11 +267,10 @@ class TaskRepository(
         val existing = taskDao.getAllTasksDirect()
         if (existing.isNotEmpty()) return
 
-        // İlk açılışta önce Supabase'de kayıtlı görev var mı kontrol et
         if (cloudSyncManager.isSupabaseConfigured()) {
             val (remoteTasks, fetchResult) = cloudSyncManager.fetchFromSupabase()
             if (fetchResult.success && !remoteTasks.isNullOrEmpty()) {
-                taskDao.insertTasks(remoteTasks)
+                taskDao.upsertTasks(remoteTasks)
                 for (task in remoteTasks) {
                     if (task.hasReminder && !task.isCompleted) {
                         val reminderTime = calculateReminderTime(task)
@@ -323,7 +358,6 @@ class TaskRepository(
             insertTask(task, syncImmediately = false)
         }
 
-        // İlk örnek verileri de Supabase yapılandırılmışsa anında yedekle
         if (cloudSyncManager.isSupabaseConfigured()) {
             syncScope.launch {
                 cloudSyncManager.backupToSupabase(taskDao.getAllTasksDirect())
@@ -351,5 +385,20 @@ class TaskRepository(
             cal.set(Calendar.MILLISECOND, 999)
             return cal.timeInMillis
         }
+
+        fun calculateDailyProgress(todayTasks: List<TaskEntity>): com.example.model.DailyProgressState {
+            val total = todayTasks.size
+            val completed = todayTasks.count { it.isCompleted }
+            val fraction = if (total > 0) completed.toFloat() / total.toFloat() else 0f
+            val pct = (fraction * 100f).toInt().coerceIn(0, 100)
+            return com.example.model.DailyProgressState(
+                completedCount = completed,
+                totalCount = total,
+                progressFraction = fraction.coerceIn(0f, 1f),
+                percentage = pct
+            )
+        }
     }
 }
+
+typealias TodoRepository = TaskRepository

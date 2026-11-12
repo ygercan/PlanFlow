@@ -302,6 +302,7 @@ class CloudSyncManager(private val context: Context) {
     }
 
     private fun taskToSupabaseJson(task: TaskEntity, accountKey: String): JSONObject {
+        val effectiveUpdated = task.effectiveUpdatedAtMillis
         return JSONObject().apply {
             put("account_key", accountKey)
             put("id", task.id)
@@ -317,7 +318,7 @@ class CloudSyncManager(private val context: Context) {
             put("has_reminder", task.hasReminder)
             put("reminder_minutes_before", task.reminderMinutesBefore)
             put("created_at_millis", task.createdAtMillis)
-            put("updated_at_millis", task.updatedAtMillis)
+            put("updated_at_millis", effectiveUpdated)
         }
     }
 
@@ -327,14 +328,30 @@ class CloudSyncManager(private val context: Context) {
             val array = JSONArray(jsonString)
             for (i in 0 until array.length()) {
                 val obj = array.getJSONObject(i)
+                val now = System.currentTimeMillis()
+                val createdMillis = when {
+                    obj.has("created_at_millis") && !obj.isNull("created_at_millis") ->
+                        obj.optLong("created_at_millis", now)
+                    obj.has("created_at") && !obj.isNull("created_at") ->
+                        com.example.data.local.TimestampConverters.parseIsoToMillis(obj.optString("created_at")) ?: now
+                    else -> obj.optLong("createdAtMillis", now)
+                }
+                val updatedMillis = when {
+                    obj.has("updated_at_millis") && !obj.isNull("updated_at_millis") ->
+                        obj.optLong("updated_at_millis", now)
+                    obj.has("updated_at") && !obj.isNull("updated_at") ->
+                        com.example.data.local.TimestampConverters.parseIsoToMillis(obj.optString("updated_at")) ?: now
+                    else -> obj.optLong("updatedAtMillis", now)
+                }
+
                 tasks.add(
                     TaskEntity(
                         id = obj.optLong("id", 0L),
-                        title = obj.optString("title", "Görev"),
+                        title = obj.optString("title", obj.optString("name", "Görev")),
                         description = obj.optString("description", ""),
                         dueDateMillis = obj.optLong(
                             "due_date_millis",
-                            obj.optLong("dueDateMillis", System.currentTimeMillis())
+                            obj.optLong("dueDateMillis", now)
                         ),
                         dueHour = obj.optInt("due_hour", obj.optInt("dueHour", -1)),
                         dueMinute = obj.optInt("due_minute", obj.optInt("dueMinute", -1)),
@@ -357,14 +374,10 @@ class CloudSyncManager(private val context: Context) {
                             "reminder_minutes_before",
                             obj.optInt("reminderMinutesBefore", 15)
                         ),
-                        createdAtMillis = obj.optLong(
-                            "created_at_millis",
-                            obj.optLong("createdAtMillis", System.currentTimeMillis())
-                        ),
-                        updatedAtMillis = obj.optLong(
-                            "updated_at_millis",
-                            obj.optLong("updatedAtMillis", System.currentTimeMillis())
-                        )
+                        createdAtMillis = createdMillis,
+                        updatedAtMillis = updatedMillis,
+                        createdAt = Date(createdMillis),
+                        updatedAt = Date(updatedMillis)
                     )
                 )
             }

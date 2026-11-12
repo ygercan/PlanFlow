@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -38,6 +39,12 @@ interface TaskDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTasks(tasks: List<TaskEntity>): List<Long>
 
+    @Upsert
+    suspend fun upsertTask(task: TaskEntity): Long
+
+    @Upsert
+    suspend fun upsertTasks(tasks: List<TaskEntity>)
+
     @Update
     suspend fun updateTask(task: TaskEntity)
 
@@ -50,3 +57,5 @@ interface TaskDao {
     @Query("DELETE FROM tasks")
     suspend fun clearAllTasks()
 }
+
+typealias TodoDao = TaskDao

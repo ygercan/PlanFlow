@@ -78,6 +78,20 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
             initialValue = emptyList()
         )
 
+    private val todayStartMillis = TaskRepository.getDayStartMillis(System.currentTimeMillis())
+    private val todayEndMillis = TaskRepository.getDayEndMillis(System.currentTimeMillis())
+
+    val todayProgressState: StateFlow<com.example.model.DailyProgressState> =
+        repository.getTasksForDateRange(todayStartMillis, todayEndMillis)
+            .combine(_activeTab) { todayTasks, _ ->
+                TaskRepository.calculateDailyProgress(todayTasks)
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = com.example.model.DailyProgressState()
+            )
+
     val filteredTasks: StateFlow<List<TaskEntity>> = combine(
         allTasks,
         _searchQuery,

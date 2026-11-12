@@ -28,7 +28,8 @@ class TaskReminderReceiver : BroadcastReceiver() {
                     val updated = task.copy(
                         isCompleted = true,
                         completedAtMillis = now,
-                        updatedAtMillis = now
+                        updatedAtMillis = now,
+                        updatedAt = java.util.Date(now)
                     )
                     db.taskDao().updateTask(updated)
                     com.example.data.repository.CloudSyncManager(context).pushSingleTaskToSupabase(updated)

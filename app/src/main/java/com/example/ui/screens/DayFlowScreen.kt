@@ -97,12 +97,6 @@ fun DayFlowScreen(
         }
     }
 
-    val todayStart = todayMillis
-    val todayEnd = remember { TaskRepository.getDayEndMillis(todayMillis) }
-    val todayTasks = tasks.filter { it.dueDateMillis in todayStart..todayEnd }
-    val todayCompleted = todayTasks.count { it.isCompleted }
-    val todayTotal = todayTasks.size
-
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             state = listState,
@@ -113,14 +107,6 @@ fun DayFlowScreen(
             contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 120.dp),
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
-            // Motivational minimalist daily progress card
-            item {
-                com.example.ui.components.MotivationalProgressCard(
-                    completedCount = todayCompleted,
-                    totalCount = todayTotal
-                )
-            }
-
             items(dayItems, key = { it.dateMillis }) { day ->
                 val dayStart = day.dateMillis
                 val dayEnd = TaskRepository.getDayEndMillis(day.dateMillis)

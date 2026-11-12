@@ -1,9 +1,12 @@
 package com.example.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -24,7 +27,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
@@ -46,11 +48,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.ActiveTab
 import com.example.model.AppThemeMode
+import com.example.model.DailyProgressState
+import com.example.ui.theme.CoralToday
 
 @Composable
 fun TopNavigationBar(
     currentTab: ActiveTab,
     pendingTaskCount: Int,
+    dailyProgress: DailyProgressState,
     themeMode: AppThemeMode,
     isSyncing: Boolean,
     onTabSelected: (ActiveTab) -> Unit,
@@ -68,7 +73,7 @@ fun TopNavigationBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp),
+                .padding(bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -139,6 +144,14 @@ fun TopNavigationBar(
                 }
             }
         }
+
+        // Minimalistic Top-of-Screen Daily Progress Bar (calculated from SQLite data)
+        DailyTopProgressBar(
+            dailyProgress = dailyProgress,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp)
+        )
 
         // Functional Segmented Pill Bar (Tabs)
         BoxWithConstraints(
@@ -234,6 +247,87 @@ fun TopNavigationBar(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun DailyTopProgressBar(
+    dailyProgress: DailyProgressState,
+    modifier: Modifier = Modifier
+) {
+    val animatedFraction by animateFloatAsState(
+        targetValue = dailyProgress.progressFraction.coerceIn(0f, 1f),
+        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+        label = "top_daily_progress_fraction"
+    )
+
+    val isAllDone = dailyProgress.totalCount > 0 && dailyProgress.completedCount == dailyProgress.totalCount
+    val activeBarColor by animateColorAsState(
+        targetValue = if (isAllDone) Color(0xFF10B981) else CoralToday,
+        animationSpec = tween(durationMillis = 350),
+        label = "top_daily_bar_color"
+    )
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("top_daily_progress_bar")
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = "BUGÜN",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.8.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = if (dailyProgress.totalCount > 0) {
+                        "${dailyProgress.completedCount}/${dailyProgress.totalCount} tamamlandı"
+                    } else {
+                        "Görev yok"
+                    },
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
+                )
+            }
+
+            Text(
+                text = "%${dailyProgress.percentage}",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = activeBarColor,
+                modifier = Modifier.testTag("top_daily_progress_percentage")
+            )
+        }
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        // Hairline 3.5dp progress track
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(3.5.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(animatedFraction)
+                    .height(3.5.dp)
+                    .clip(CircleShape)
+                    .background(activeBarColor)
+            )
         }
     }
 }

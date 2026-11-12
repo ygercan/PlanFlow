@@ -110,14 +110,6 @@ fun OverviewScreen(
             }
         }
 
-        // Minimalist Motivational Progress & Daily Stats Card
-        item {
-            com.example.ui.components.MotivationalProgressCard(
-                completedCount = completedToday.size,
-                totalCount = todayTasks.size
-            )
-        }
-
         // Functional Quick Add Bar
         item {
             Row(

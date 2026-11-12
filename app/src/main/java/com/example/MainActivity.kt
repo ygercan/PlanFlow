@@ -92,6 +92,7 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
     val editingTask by viewModel.editingTask.collectAsStateWithLifecycle()
     val showCloudSyncDialog by viewModel.showCloudSyncDialog.collectAsStateWithLifecycle()
     val showMenuSheet by viewModel.showMenuSheet.collectAsStateWithLifecycle()
+    val todayProgress by viewModel.todayProgressState.collectAsStateWithLifecycle()
 
     val pendingCount = allTasks.count { !it.isCompleted }
 
@@ -108,6 +109,7 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
             TopNavigationBar(
                 currentTab = activeTab,
                 pendingTaskCount = pendingCount,
+                dailyProgress = todayProgress,
                 themeMode = themeMode,
                 isSyncing = isSyncing,
                 onTabSelected = { viewModel.setActiveTab(it) },

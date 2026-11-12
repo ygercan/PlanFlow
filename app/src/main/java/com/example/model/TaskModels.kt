@@ -60,3 +60,11 @@ data class SyncResult(
     val message: String,
     val timestamp: Long = System.currentTimeMillis()
 )
+
+data class DailyProgressState(
+    val completedCount: Int = 0,
+    val totalCount: Int = 0,
+    val progressFraction: Float = 0f,
+    val percentage: Int = 0
+)
+
