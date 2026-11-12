@@ -71,6 +71,30 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
     private val _showCloudSyncDialog = MutableStateFlow(false)
     val showCloudSyncDialog: StateFlow<Boolean> = _showCloudSyncDialog.asStateFlow()
 
+    // GitHub Atomic Release Update States
+    private val _showGitHubUpdateDialog = MutableStateFlow(false)
+    val showGitHubUpdateDialog: StateFlow<Boolean> = _showGitHubUpdateDialog.asStateFlow()
+
+    private val _isCheckingUpdate = MutableStateFlow(false)
+    val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate.asStateFlow()
+
+    private val _githubOwner = MutableStateFlow(repository.gitHubReleaseManager.getGitHubOwner())
+    val githubOwner: StateFlow<String> = _githubOwner.asStateFlow()
+
+    private val _githubRepo = MutableStateFlow(repository.gitHubReleaseManager.getGitHubRepo())
+    val githubRepo: StateFlow<String> = _githubRepo.asStateFlow()
+
+    private val _lastUpdateCheckTime = MutableStateFlow(repository.gitHubReleaseManager.getLastCheckTimeString())
+    val lastUpdateCheckTime: StateFlow<String> = _lastUpdateCheckTime.asStateFlow()
+
+    private val _updateStatusMessage = MutableStateFlow<String?>(null)
+    val updateStatusMessage: StateFlow<String?> = _updateStatusMessage.asStateFlow()
+
+    private val _latestReleaseInfo = MutableStateFlow<com.example.data.repository.GitHubReleaseInfo?>(null)
+    val latestReleaseInfo: StateFlow<com.example.data.repository.GitHubReleaseInfo?> = _latestReleaseInfo.asStateFlow()
+
+    val installedVersionName: String = repository.gitHubReleaseManager.getInstalledVersionName()
+
     val allTasks: StateFlow<List<TaskEntity>> = repository.allTasks
         .stateIn(
             scope = viewModelScope,
@@ -121,7 +145,7 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
                 // 1. Önce yerel veritabanı boşsa Supabase'den çek veya örnek veri yükle
                 repository.seedInitialDataIfEmpty()
 
-                // 2. İlk açılışta otomatik olarak Supabase'den son halini çek ve updatedAtMillis ile eşitle
+                // 2. İlk açılışta otomatik olarak Supabase'den son halini çek ve updatedAtMillis ile atomik eşitle
                 if (repository.cloudSyncManager.isSupabaseConfigured()) {
                     val result = repository.syncOnStartupOrDemand()
                     _syncMessage.value = result.message
@@ -130,6 +154,13 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
             } catch (_: Exception) {
             } finally {
                 _isSyncing.value = false
+            }
+        }
+
+        // 3. İlk açılışta GitHub repo tanımlıysa otomatik olarak yeni APK sürümü var mı kontrol et
+        viewModelScope.launch {
+            if (repository.gitHubReleaseManager.isRepositoryConfigured()) {
+                checkForGitHubUpdates(silentOnNoUpdate = true)
             }
         }
     }
@@ -344,5 +375,78 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
 
     fun clearSyncMessage() {
         _syncMessage.value = null
+    }
+
+    fun openGitHubUpdateDialog() {
+        _githubOwner.value = repository.gitHubReleaseManager.getGitHubOwner()
+        _githubRepo.value = repository.gitHubReleaseManager.getGitHubRepo()
+        _lastUpdateCheckTime.value = repository.gitHubReleaseManager.getLastCheckTimeString()
+        _showGitHubUpdateDialog.value = true
+    }
+
+    fun dismissGitHubUpdateDialog() {
+        _showGitHubUpdateDialog.value = false
+    }
+
+    fun saveGitHubRepoConfig(owner: String, repo: String) {
+        repository.gitHubReleaseManager.setGitHubRepository(owner, repo)
+        _githubOwner.value = repository.gitHubReleaseManager.getGitHubOwner()
+        _githubRepo.value = repository.gitHubReleaseManager.getGitHubRepo()
+        checkForGitHubUpdates(silentOnNoUpdate = false)
+    }
+
+    fun checkForGitHubUpdates(silentOnNoUpdate: Boolean = false) {
+        viewModelScope.launch {
+            _isCheckingUpdate.value = true
+            if (!silentOnNoUpdate) {
+                _updateStatusMessage.value = "GitHub Releases kontrol ediliyor..."
+            }
+            try {
+                val result = repository.gitHubReleaseManager.checkLatestRelease()
+                _latestReleaseInfo.value = result.releaseInfo
+                _lastUpdateCheckTime.value = repository.gitHubReleaseManager.getLastCheckTimeString()
+                if (!silentOnNoUpdate || result.releaseInfo?.isNewerThanInstalled == true) {
+                    _updateStatusMessage.value = result.message
+                }
+            } catch (e: Exception) {
+                if (!silentOnNoUpdate) {
+                    _updateStatusMessage.value = "Denetim hatası: ${e.localizedMessage}"
+                }
+            } finally {
+                _isCheckingUpdate.value = false
+            }
+        }
+    }
+
+    fun executeAtomicCheckpointAndDownload(
+        targetUrl: String,
+        onReadyToOpenUrl: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            _isCheckingUpdate.value = true
+            try {
+                val checkpointResult = repository.prepareAtomicPreUpdateCheckpoint()
+                _updateStatusMessage.value = checkpointResult.message
+                _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
+                if (checkpointResult.success) {
+                    onReadyToOpenUrl(targetUrl)
+                }
+            } finally {
+                _isCheckingUpdate.value = false
+            }
+        }
+    }
+
+    fun runAtomicDbCheckpointOnly() {
+        viewModelScope.launch {
+            _isCheckingUpdate.value = true
+            try {
+                val checkpointResult = repository.prepareAtomicPreUpdateCheckpoint()
+                _updateStatusMessage.value = checkpointResult.message
+                _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
+            } finally {
+                _isCheckingUpdate.value = false
+            }
+        }
     }
 }

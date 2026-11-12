@@ -62,6 +62,7 @@ fun TopNavigationBar(
     dailyProgress: DailyProgressState,
     themeMode: AppThemeMode,
     isSyncing: Boolean,
+    hasUpdateAvailable: Boolean = false,
     statusBarTopPadding: Dp = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
     onTabSelected: (ActiveTab) -> Unit,
     onThemeToggle: () -> Unit,
@@ -148,19 +149,30 @@ fun TopNavigationBar(
                 }
 
                 // 3. View Settings Menu Circular Button (next to Theme button)
-                TopBarCircleButton(
-                    onClick = {
-                        haptics.performNavigationTap()
-                        onOpenMenu()
-                    },
-                    testTag = "top_menu_button"
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = "Görünüm Menüsü",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(18.dp)
-                    )
+                Box {
+                    TopBarCircleButton(
+                        onClick = {
+                            haptics.performNavigationTap()
+                            onOpenMenu()
+                        },
+                        testTag = "top_menu_button"
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "Görünüm Menüsü",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    if (hasUpdateAvailable) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .size(9.dp)
+                                .clip(CircleShape)
+                                .background(CoralToday)
+                        )
+                    }
                 }
             }
         }

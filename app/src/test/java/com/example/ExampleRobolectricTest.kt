@@ -161,5 +161,55 @@ class ExampleRobolectricTest {
         assertEquals(50, progress.percentage)
         assertEquals(0.5f, progress.progressFraction, 0.001f)
     }
+
+    @Test
+    fun `github release manager compares semantic versions and extracts apk asset`() {
+        assertTrue(com.example.data.repository.GitHubReleaseManager.isRemoteVersionNewer("1.0", "v1.0.1"))
+        assertTrue(com.example.data.repository.GitHubReleaseManager.isRemoteVersionNewer("1.0.2", "v1.1.0"))
+        org.junit.Assert.assertFalse(com.example.data.repository.GitHubReleaseManager.isRemoteVersionNewer("1.2.0", "v1.2.0"))
+        org.junit.Assert.assertFalse(com.example.data.repository.GitHubReleaseManager.isRemoteVersionNewer("1.3.0", "v1.2.9"))
+
+        val sampleReleaseJson = org.json.JSONObject(
+            """
+            {
+              "tag_name": "v1.0.5",
+              "name": "PlanFlow v1.0.5",
+              "body": "- Yeni ozellik eklendi\n- Atomik guncelleme",
+              "published_at": "2026-11-12T10:00:00Z",
+              "html_url": "https://github.com/ygercn/planflow/releases/tag/v1.0.5",
+              "assets": [
+                {
+                  "name": "PlanFlow-v1.0.5.apk",
+                  "browser_download_url": "https://github.com/ygercn/planflow/releases/download/v1.0.5/PlanFlow-v1.0.5.apk",
+                  "size": 10485760
+                }
+              ]
+            }
+            """.trimIndent()
+        )
+
+        val info = com.example.data.repository.GitHubReleaseManager.parseReleaseJson(sampleReleaseJson, "1.0")
+        assertTrue(info.isNewerThanInstalled)
+        assertEquals("v1.0.5", info.tagName)
+        assertEquals(
+            "https://github.com/ygercn/planflow/releases/download/v1.0.5/PlanFlow-v1.0.5.apk",
+            info.preferredDownloadOrReleaseUrl
+        )
+    }
+
+    @Test
+    fun `atomic pre-update checkpoint normalizes and snapshots local tasks inside transaction`() = runTest {
+        val dao = database.taskDao()
+        dao.insertTasks(
+            listOf(
+                TodoItem(title = "Atomic Task 1", dueDateMillis = 1000L),
+                TodoItem(title = "Atomic Task 2", dueDateMillis = 2000L)
+            )
+        )
+
+        val result = repository.prepareAtomicPreUpdateCheckpoint()
+        assertTrue(result.success)
+        assertEquals(2, dao.getAllTasksDirect().size)
+    }
 }
 

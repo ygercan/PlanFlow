@@ -24,6 +24,8 @@ class TaskRepository(
     context: Context
 ) {
     val cloudSyncManager = CloudSyncManager(context)
+    val gitHubReleaseManager = GitHubReleaseManager(context)
+    private val appContext = context.applicationContext
     private val syncScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     val allTasks: Flow<List<TaskEntity>> = taskDao.getAllTasks()
@@ -178,7 +180,8 @@ class TaskRepository(
     }
 
     /**
-     * Bidirectional Room <-> Supabase synchronization using [resolveConflictsByUpdatedAt].
+     * Bidirectional Room <-> Supabase synchronization using [resolveConflictsByUpdatedAt]
+     * inside an atomic SQLite `@Transaction` block.
      */
     suspend fun syncOnStartupOrDemand(): SyncResult {
         val (remoteTasks, fetchResult) = cloudSyncManager.fetchFromSupabase()
@@ -190,18 +193,16 @@ class TaskRepository(
 
         val resolution = resolveConflictsByUpdatedAt(localTasks, remoteTasks)
 
-        // Apply newer remote records into local Room SQLite via Upsert
-        if (resolution.itemsToSaveLocally.isNotEmpty()) {
-            taskDao.upsertTasks(resolution.itemsToSaveLocally)
-            for (task in resolution.itemsToSaveLocally) {
-                if (task.hasReminder && !task.isCompleted) {
-                    val reminderTime = calculateReminderTime(task)
-                    if (reminderTime > System.currentTimeMillis()) {
-                        notificationHelper.scheduleTaskReminder(task, reminderTime)
-                    }
-                } else {
-                    notificationHelper.cancelTaskReminder(task.id)
+        // Apply newer remote records into local Room SQLite atomically via @Transaction
+        val totalMerged = taskDao.applyConflictResolutionAtomically(resolution.itemsToSaveLocally)
+        for (task in resolution.itemsToSaveLocally) {
+            if (task.hasReminder && !task.isCompleted) {
+                val reminderTime = calculateReminderTime(task)
+                if (reminderTime > System.currentTimeMillis()) {
+                    notificationHelper.scheduleTaskReminder(task, reminderTime)
                 }
+            } else {
+                notificationHelper.cancelTaskReminder(task.id)
             }
         }
 
@@ -210,11 +211,40 @@ class TaskRepository(
             cloudSyncManager.backupToSupabase(resolution.itemsToPushToSupabase)
         }
 
-        val totalMerged = taskDao.getAllTasksDirect().size
         return SyncResult(
             true,
-            "Supabase senkronizasyonu tamamlandı ($totalMerged görev güncel, ${resolution.itemsToSaveLocally.size} indirildi, ${resolution.itemsToPushToSupabase.size} gönderildi)."
+            "Atomik senkronizasyon tamamlandı ($totalMerged görev güncel, ${resolution.itemsToSaveLocally.size} indirildi, ${resolution.itemsToPushToSupabase.size} gönderildi)."
         )
+    }
+
+    /**
+     * Executes an atomic SQLite transaction (`@Transaction`) to normalize and snapshot
+     * all local tasks before initiating an APK update download from GitHub Releases.
+     */
+    suspend fun prepareAtomicPreUpdateCheckpoint(): SyncResult {
+        return try {
+            val verifiedTasks = taskDao.checkpointAndNormalizeTasksAtomically()
+            val snapshotJson = cloudSyncManager.serializeTasksToJson(verifiedTasks)
+            appContext.getSharedPreferences("planflow_atomic_checkpoint", Context.MODE_PRIVATE)
+                .edit()
+                .putString("pre_update_snapshot_json", snapshotJson)
+                .putLong("pre_update_timestamp", System.currentTimeMillis())
+                .apply()
+
+            if (cloudSyncManager.isSupabaseConfigured() && verifiedTasks.isNotEmpty()) {
+                cloudSyncManager.backupToSupabase(verifiedTasks)
+            }
+
+            SyncResult(
+                success = true,
+                message = "Atomik veritabanı kontrol noktası oluşturuldu (${verifiedTasks.size} görev güvenceye alındı)."
+            )
+        } catch (e: Exception) {
+            SyncResult(
+                success = false,
+                message = "Atomik işlem geri alındı (Rollback): ${e.localizedMessage}"
+            )
+        }
     }
 
     suspend fun syncToCloud(): SyncResult {
@@ -234,7 +264,7 @@ class TaskRepository(
     suspend fun importJson(json: String): Boolean {
         val tasks = cloudSyncManager.parseTasksFromJson(json)
         if (tasks.isNotEmpty()) {
-            taskDao.upsertTasks(tasks)
+            taskDao.applyConflictResolutionAtomically(tasks)
             syncScope.launch {
                 cloudSyncManager.backupToSupabase(taskDao.getAllTasksDirect())
             }

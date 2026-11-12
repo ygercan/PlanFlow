@@ -99,6 +99,15 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
     val showMenuSheet by viewModel.showMenuSheet.collectAsStateWithLifecycle()
     val todayProgress by viewModel.todayProgressState.collectAsStateWithLifecycle()
 
+    val showGitHubUpdateDialog by viewModel.showGitHubUpdateDialog.collectAsStateWithLifecycle()
+    val isCheckingUpdate by viewModel.isCheckingUpdate.collectAsStateWithLifecycle()
+    val githubOwner by viewModel.githubOwner.collectAsStateWithLifecycle()
+    val githubRepo by viewModel.githubRepo.collectAsStateWithLifecycle()
+    val lastUpdateCheckTime by viewModel.lastUpdateCheckTime.collectAsStateWithLifecycle()
+    val updateStatusMessage by viewModel.updateStatusMessage.collectAsStateWithLifecycle()
+    val latestReleaseInfo by viewModel.latestReleaseInfo.collectAsStateWithLifecycle()
+    val hasUpdateAvailable = latestReleaseInfo?.isNewerThanInstalled == true
+
     val pendingCount = allTasks.count { !it.isCompleted }
 
     // Back handling: If on secondary tab, return to FLOW (main agenda)
@@ -120,6 +129,7 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
                 dailyProgress = todayProgress,
                 themeMode = themeMode,
                 isSyncing = isSyncing,
+                hasUpdateAvailable = hasUpdateAvailable,
                 statusBarTopPadding = statusBarTopPadding,
                 onTabSelected = { viewModel.setActiveTab(it) },
                 onThemeToggle = { viewModel.toggleTheme() },
@@ -245,14 +255,38 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
         )
     }
 
-    // View Switcher Menu Sheet (triggered by the floating ≡ button)
+    // GitHub Atomic Update & Release Manager Dialog
+    if (showGitHubUpdateDialog) {
+        com.example.ui.dialogs.GitHubUpdateDialog(
+            installedVersion = viewModel.installedVersionName,
+            githubOwner = githubOwner,
+            githubRepo = githubRepo,
+            lastCheckTime = lastUpdateCheckTime,
+            isCheckingUpdate = isCheckingUpdate,
+            updateStatusMessage = updateStatusMessage,
+            latestRelease = latestReleaseInfo,
+            onDismiss = { viewModel.dismissGitHubUpdateDialog() },
+            onSaveRepoConfig = { owner, repo -> viewModel.saveGitHubRepoConfig(owner, repo) },
+            onCheckForUpdates = { viewModel.checkForGitHubUpdates(silentOnNoUpdate = false) },
+            onExecuteAtomicCheckpointAndDownload = { targetUrl, onReady ->
+                viewModel.executeAtomicCheckpointAndDownload(targetUrl, onReady)
+            },
+            onRunAtomicDbCheckpointOnly = { viewModel.runAtomicDbCheckpointOnly() }
+        )
+    }
+
+    // View Switcher Menu Sheet (triggered by the top ≡ button)
     if (showMenuSheet) {
         ViewSwitcherBottomSheet(
             currentTab = activeTab,
             themeMode = themeMode,
+            hasUpdateAvailable = hasUpdateAvailable,
+            latestReleaseTag = latestReleaseInfo?.tagName,
+            installedVersion = viewModel.installedVersionName,
             onSelectTab = { viewModel.setActiveTab(it) },
             onToggleTheme = { viewModel.toggleTheme() },
             onOpenCloudSync = { viewModel.openCloudSyncDialog() },
+            onOpenGitHubUpdate = { viewModel.openGitHubUpdateDialog() },
             onDismiss = { viewModel.dismissMenuSheet() }
         )
     }

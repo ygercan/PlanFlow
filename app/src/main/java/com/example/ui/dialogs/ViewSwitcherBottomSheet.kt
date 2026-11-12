@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.SystemUpdateAlt
 import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,9 +51,13 @@ import com.example.util.rememberHapticController
 fun ViewSwitcherBottomSheet(
     currentTab: ActiveTab,
     themeMode: AppThemeMode,
+    hasUpdateAvailable: Boolean = false,
+    latestReleaseTag: String? = null,
+    installedVersion: String = "1.0",
     onSelectTab: (ActiveTab) -> Unit,
     onToggleTheme: () -> Unit,
     onOpenCloudSync: () -> Unit,
+    onOpenGitHubUpdate: () -> Unit = {},
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
@@ -152,7 +158,7 @@ fun ViewSwitcherBottomSheet(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Actions: Cloud Sync & Theme
+            // Actions Row 1: Cloud Sync & Theme
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -235,6 +241,74 @@ fun ViewSwitcherBottomSheet(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Actions Row 2: GitHub Atomic Update & Release Check
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        if (hasUpdateAvailable) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceVariant
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = if (hasUpdateAvailable) CoralToday else MaterialTheme.colorScheme.outline.copy(alpha = 0.65f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clickable {
+                        haptics.performNavigationTap()
+                        onDismiss()
+                        onOpenGitHubUpdate()
+                    }
+                    .padding(horizontal = 14.dp, vertical = 12.dp)
+                    .testTag("open_github_update_button"),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.SystemUpdateAlt,
+                        contentDescription = null,
+                        tint = CoralToday,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = "Atomik Güncelleme (GitHub Releases)",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = if (hasUpdateAvailable && latestReleaseTag != null) {
+                                "Yeni APK sürümü hazır: $latestReleaseTag"
+                            } else {
+                                "Sürüm v$installedVersion · Otomatik APK & Atomik DB"
+                            },
+                            fontSize = 11.sp,
+                            color = if (hasUpdateAvailable) CoralToday else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(if (hasUpdateAvailable) CoralToday else MaterialTheme.colorScheme.surface)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = if (hasUpdateAvailable) "Güncelle" else "Denetle",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (hasUpdateAvailable) Color.White else CoralToday
+                    )
                 }
             }
 
