@@ -53,6 +53,7 @@ import com.example.model.ActiveTab
 import com.example.model.AppThemeMode
 import com.example.model.DailyProgressState
 import com.example.ui.theme.CoralToday
+import com.example.util.rememberHapticController
 
 @Composable
 fun TopNavigationBar(
@@ -67,6 +68,8 @@ fun TopNavigationBar(
     onCloudSyncClick: () -> Unit,
     onOpenMenu: () -> Unit
 ) {
+    val haptics = rememberHapticController()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -101,7 +104,10 @@ fun TopNavigationBar(
             ) {
                 // 1. Cloud Sync Circular Button
                 TopBarCircleButton(
-                    onClick = onCloudSyncClick,
+                    onClick = {
+                        haptics.performNavigationTap()
+                        onCloudSyncClick()
+                    },
                     testTag = "cloud_sync_button"
                 ) {
                     if (isSyncing) {
@@ -122,7 +128,10 @@ fun TopNavigationBar(
 
                 // 2. Theme Mode Circular Button
                 TopBarCircleButton(
-                    onClick = onThemeToggle,
+                    onClick = {
+                        haptics.performNavigationTap()
+                        onThemeToggle()
+                    },
                     testTag = "theme_toggle_button"
                 ) {
                     val icon = when (themeMode) {
@@ -140,7 +149,10 @@ fun TopNavigationBar(
 
                 // 3. View Settings Menu Circular Button (next to Theme button)
                 TopBarCircleButton(
-                    onClick = onOpenMenu,
+                    onClick = {
+                        haptics.performNavigationTap()
+                        onOpenMenu()
+                    },
                     testTag = "top_menu_button"
                 ) {
                     Icon(
@@ -216,7 +228,10 @@ fun TopNavigationBar(
                         .clickable(
                             interactionSource = interactionSource,
                             indication = null
-                        ) { onTabSelected(tab) }
+                        ) {
+                            haptics.performNavigationTap()
+                            onTabSelected(tab)
+                        }
                         .padding(horizontal = 10.dp, vertical = 9.dp)
                         .testTag("tab_${tab.name.lowercase()}"),
                     verticalAlignment = Alignment.CenterVertically,

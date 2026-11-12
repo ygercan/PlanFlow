@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.local.TaskEntity
 import com.example.model.TaskCategory
 import com.example.model.TaskPriority
+import com.example.util.rememberHapticController
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -61,6 +62,7 @@ fun TaskItemCard(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val haptics = rememberHapticController()
 
     val category = TaskCategory.fromTitle(task.category)
     val priority = TaskPriority.fromString(task.priority)
@@ -86,7 +88,10 @@ fun TaskItemCard(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
                 shape = RoundedCornerShape(12.dp)
             )
-            .clickable { expanded = !expanded }
+            .clickable {
+                haptics.performNavigationTap()
+                expanded = !expanded
+            }
             .padding(horizontal = 14.dp, vertical = 12.dp)
             .alpha(contentAlpha)
             .testTag("task_item_${task.id}")
@@ -107,7 +112,10 @@ fun TaskItemCard(
                         else MaterialTheme.colorScheme.outline,
                         shape = CircleShape
                     )
-                    .clickable { onToggleComplete() }
+                    .clickable {
+                        haptics.performTaskCompletion(isCompleting = !task.isCompleted)
+                        onToggleComplete()
+                    }
                     .testTag("task_checkbox_${task.id}"),
                 contentAlignment = Alignment.Center
             ) {

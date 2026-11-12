@@ -48,6 +48,7 @@ import com.example.data.repository.TaskRepository
 import com.example.ui.theme.CoralToday
 import com.example.ui.theme.GhostDayNumber
 import com.example.ui.theme.GhostDayNumberDark
+import com.example.util.rememberHapticController
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -62,6 +63,7 @@ fun DayFlowScreen(
     onAddTaskForDate: (Long) -> Unit,
     onOpenMenu: () -> Unit
 ) {
+    val haptics = rememberHapticController()
     val todayMillis = remember { TaskRepository.getDayStartMillis(System.currentTimeMillis()) }
 
     // Generate continuous days (e.g., 3 days in the past, today, and next 17 days)
@@ -117,7 +119,10 @@ fun DayFlowScreen(
                     tasks = dayTasks,
                     onToggleTask = onToggleTask,
                     onEditTask = onEditTask,
-                    onAddTask = { onAddTaskForDate(day.dateMillis) }
+                    onAddTask = {
+                        haptics.performNavigationTap()
+                        onAddTaskForDate(day.dateMillis)
+                    }
                 )
             }
         }
@@ -130,7 +135,10 @@ fun DayFlowScreen(
                 .size(54.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.onBackground)
-                .clickable { onAddTaskForDate(todayMillis) }
+                .clickable {
+                    haptics.performNavigationTap()
+                    onAddTaskForDate(todayMillis)
+                }
                 .testTag("floating_add_task_button"),
             contentAlignment = Alignment.Center
         ) {
@@ -225,6 +233,7 @@ fun DayFlowTaskRow(
     onToggle: () -> Unit,
     onEdit: () -> Unit
 ) {
+    val haptics = rememberHapticController()
     val isCompleted = task.isCompleted
 
     // Format time or status
@@ -251,7 +260,10 @@ fun DayFlowTaskRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onToggle() }
+            .clickable {
+                haptics.performTaskCompletion(isCompleting = !isCompleted)
+                onToggle()
+            }
             .padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

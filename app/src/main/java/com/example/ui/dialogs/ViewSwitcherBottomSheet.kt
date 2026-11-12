@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.example.model.ActiveTab
 import com.example.model.AppThemeMode
 import com.example.ui.theme.CoralToday
+import com.example.util.rememberHapticController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,6 +55,7 @@ fun ViewSwitcherBottomSheet(
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
+    val haptics = rememberHapticController()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -98,6 +100,7 @@ fun ViewSwitcherBottomSheet(
                     icon = Icons.Default.ViewAgenda,
                     isSelected = currentTab == ActiveTab.FLOW,
                     onClick = {
+                        haptics.performNavigationTap()
                         onSelectTab(ActiveTab.FLOW)
                         onDismiss()
                     }
@@ -109,6 +112,7 @@ fun ViewSwitcherBottomSheet(
                     icon = Icons.Default.CalendarMonth,
                     isSelected = currentTab == ActiveTab.CALENDAR,
                     onClick = {
+                        haptics.performNavigationTap()
                         onSelectTab(ActiveTab.CALENDAR)
                         onDismiss()
                     }
@@ -120,6 +124,7 @@ fun ViewSwitcherBottomSheet(
                     icon = Icons.AutoMirrored.Filled.List,
                     isSelected = currentTab == ActiveTab.TODO,
                     onClick = {
+                        haptics.performNavigationTap()
                         onSelectTab(ActiveTab.TODO)
                         onDismiss()
                     }
@@ -131,6 +136,7 @@ fun ViewSwitcherBottomSheet(
                     icon = Icons.Default.Dashboard,
                     isSelected = currentTab == ActiveTab.OVERVIEW,
                     onClick = {
+                        haptics.performNavigationTap()
                         onSelectTab(ActiveTab.OVERVIEW)
                         onDismiss()
                     }
@@ -163,6 +169,7 @@ fun ViewSwitcherBottomSheet(
                             shape = RoundedCornerShape(12.dp)
                         )
                         .clickable {
+                            haptics.performNavigationTap()
                             onDismiss()
                             onOpenCloudSync()
                         }
@@ -197,7 +204,10 @@ fun ViewSwitcherBottomSheet(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.65f),
                             shape = RoundedCornerShape(12.dp)
                         )
-                        .clickable { onToggleTheme() }
+                        .clickable {
+                            haptics.performNavigationTap()
+                            onToggleTheme()
+                        }
                         .padding(14.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {

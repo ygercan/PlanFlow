@@ -265,6 +265,7 @@ fun FilterPill(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    val haptics = com.example.util.rememberHapticController()
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
@@ -277,7 +278,10 @@ fun FilterPill(
                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                 shape = RoundedCornerShape(10.dp)
             )
-            .clickable { onClick() }
+            .clickable {
+                haptics.performNavigationTap()
+                onClick()
+            }
             .padding(horizontal = 14.dp, vertical = 7.dp),
         contentAlignment = Alignment.Center
     ) {
