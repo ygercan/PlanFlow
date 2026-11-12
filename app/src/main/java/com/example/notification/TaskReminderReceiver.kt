@@ -19,18 +19,19 @@ class TaskReminderReceiver : BroadcastReceiver() {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.cancel(taskId.toInt())
 
-            // Mark task completed in database
+            // Mark task completed in database and push to Supabase
             CoroutineScope(Dispatchers.IO).launch {
                 val db = AppDatabase.getDatabase(context)
                 val task = db.taskDao().getTaskByIdDirect(taskId)
                 if (task != null) {
-                    db.taskDao().updateTask(
-                        task.copy(
-                            isCompleted = true,
-                            completedAtMillis = System.currentTimeMillis(),
-                            updatedAtMillis = System.currentTimeMillis()
-                        )
+                    val now = System.currentTimeMillis()
+                    val updated = task.copy(
+                        isCompleted = true,
+                        completedAtMillis = now,
+                        updatedAtMillis = now
                     )
+                    db.taskDao().updateTask(updated)
+                    com.example.data.repository.CloudSyncManager(context).pushSingleTaskToSupabase(updated)
                 }
             }
             return

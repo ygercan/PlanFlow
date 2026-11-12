@@ -1,35 +1,99 @@
 package com.example.data.repository
 
 import android.content.Context
-import android.provider.Settings
+import com.example.BuildConfig
 import com.example.data.local.TaskEntity
 import com.example.model.SyncResult
-import com.google.firebase.FirebaseApp
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
+import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class CloudSyncManager(private val context: Context) {
 
-    private val prefs = context.getSharedPreferences("planflow_sync_prefs", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences("planflow_supabase_prefs", Context.MODE_PRIVATE)
 
-    val deviceId: String by lazy {
-        try {
-            Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "device_default"
-        } catch (_: Exception) {
-            "device_default"
-        }
+    private val httpClient = OkHttpClient.Builder()
+        .connectTimeout(12, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
+        .build()
+
+    private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
+
+    companion object {
+        const val TABLE_NAME = "planflow_tasks"
+        const val DEFAULT_ACCOUNT_KEY = "ygercn@gmail.com"
+
+        val SUPABASE_SCHEMA_SQL = """
+            CREATE TABLE IF NOT EXISTS public.planflow_tasks (
+                account_key TEXT NOT NULL,
+                id BIGINT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT DEFAULT '',
+                due_date_millis BIGINT NOT NULL,
+                due_hour INT DEFAULT -1,
+                due_minute INT DEFAULT -1,
+                category TEXT DEFAULT 'Genel',
+                priority TEXT DEFAULT 'NORMAL',
+                is_completed BOOLEAN DEFAULT FALSE,
+                completed_at_millis BIGINT,
+                has_reminder BOOLEAN DEFAULT FALSE,
+                reminder_minutes_before INT DEFAULT 15,
+                created_at_millis BIGINT DEFAULT 0,
+                updated_at_millis BIGINT NOT NULL,
+                PRIMARY KEY (account_key, id)
+            );
+
+            ALTER TABLE public.planflow_tasks ENABLE ROW LEVEL SECURITY;
+
+            CREATE POLICY "Allow anon access by account_key"
+            ON public.planflow_tasks
+            FOR ALL
+            TO anon, authenticated
+            USING (true)
+            WITH CHECK (true);
+        """.trimIndent()
+    }
+
+    fun getAccountKey(): String {
+        val saved = prefs.getString("account_key", null)
+        return if (!saved.isNullOrBlank()) saved.trim() else DEFAULT_ACCOUNT_KEY
+    }
+
+    fun setAccountKey(newKey: String) {
+        val cleaned = newKey.trim().ifBlank { DEFAULT_ACCOUNT_KEY }
+        prefs.edit().putString("account_key", cleaned).apply()
+    }
+
+    fun isSupabaseConfigured(): Boolean {
+        val url = BuildConfig.SUPABASE_URL.trim()
+        val key = BuildConfig.SUPABASE_ANON_KEY.trim()
+        return url.isNotEmpty() &&
+                key.isNotEmpty() &&
+                !url.contains("your-project.supabase.co") &&
+                !key.contains("your-supabase-anon-key") &&
+                url.startsWith("http")
+    }
+
+    private fun getBaseRestUrl(): String {
+        val rawUrl = BuildConfig.SUPABASE_URL.trim().trimEnd('/')
+        return "$rawUrl/rest/v1/$TABLE_NAME"
     }
 
     fun getLastSyncTimeString(): String {
         val lastSync = prefs.getLong("last_sync_time", 0L)
         if (lastSync == 0L) return "Henüz senkronize edilmedi"
-        val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("tr"))
+        val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm:ss", Locale("tr"))
         return sdf.format(Date(lastSync))
     }
 
@@ -37,184 +101,227 @@ class CloudSyncManager(private val context: Context) {
         prefs.edit().putLong("last_sync_time", System.currentTimeMillis()).apply()
     }
 
-    suspend fun backupToCloud(tasks: List<TaskEntity>): SyncResult {
-        var firestoreSuccess = false
-        var errorMsg = ""
+    private fun Request.Builder.addSupabaseHeaders(): Request.Builder {
+        val key = BuildConfig.SUPABASE_ANON_KEY.trim()
+        addHeader("apikey", key)
+        // Standard JWT anon keys require Bearer Authorization header; sb_publishable_ keys work with apikey header (and Bearer if JWT)
+        if (!key.startsWith("sb_publishable_")) {
+            addHeader("Authorization", "Bearer $key")
+        }
+        return this
+    }
 
-        try {
-            // Check if Firebase is initialized
-            val app = try {
-                FirebaseApp.getInstance()
-            } catch (_: Exception) {
-                null
-            }
-
-            if (app != null) {
-                val db = FirebaseFirestore.getInstance()
-                val batch = db.batch()
-                val userTasksCol = db.collection("planflow_backups").document(deviceId).collection("tasks")
-
-                // Map tasks to Firestore documents
-                for (task in tasks) {
-                    val docRef = userTasksCol.document(task.id.toString())
-                    val taskMap = hashMapOf(
-                        "id" to task.id,
-                        "title" to task.title,
-                        "description" to task.description,
-                        "dueDateMillis" to task.dueDateMillis,
-                        "dueHour" to task.dueHour,
-                        "dueMinute" to task.dueMinute,
-                        "category" to task.category,
-                        "priority" to task.priority,
-                        "isCompleted" to task.isCompleted,
-                        "completedAtMillis" to task.completedAtMillis,
-                        "hasReminder" to task.hasReminder,
-                        "reminderMinutesBefore" to task.reminderMinutesBefore,
-                        "updatedAtMillis" to task.updatedAtMillis
-                    )
-                    batch.set(docRef, taskMap, SetOptions.merge())
-                }
-
-                // Update root metadata
-                val metaDoc = db.collection("planflow_backups").document(deviceId)
-                val metaMap = hashMapOf(
-                    "lastSyncMillis" to System.currentTimeMillis(),
-                    "taskCount" to tasks.size,
-                    "deviceId" to deviceId
-                )
-                batch.set(metaDoc, metaMap, SetOptions.merge())
-
-                batch.commit().await()
-                firestoreSuccess = true
-            }
-        } catch (e: Exception) {
-            errorMsg = e.localizedMessage ?: "Bulut sunucusuna bağlanılamadı"
+    /**
+     * Anlık tekil görev yedekleme (ekleme / güncelleme / tamamlama sonrası otomatik çağrılır)
+     */
+    suspend fun pushSingleTaskToSupabase(task: TaskEntity): SyncResult = withContext(Dispatchers.IO) {
+        if (!isSupabaseConfigured()) {
+            return@withContext SyncResult(
+                false,
+                "Supabase bilgileri tanımlanmamış. AI Studio Secrets panelinden SUPABASE_URL ve SUPABASE_ANON_KEY ekleyin."
+            )
         }
 
-        // Always save a local snapshot JSON in SharedPreferences as offline cloud-cache
+        val accountKey = getAccountKey()
+        val payloadArray = JSONArray().apply {
+            put(taskToSupabaseJson(task, accountKey))
+        }
+
+        val url = "${getBaseRestUrl()}?on_conflict=account_key,id"
+        val request = Request.Builder()
+            .url(url)
+            .addSupabaseHeaders()
+            .addHeader("Content-Type", "application/json")
+            .addHeader("Prefer", "resolution=merge-duplicates,return=minimal")
+            .post(payloadArray.toString().toRequestBody(jsonMediaType))
+            .build()
+
+        return@withContext try {
+            httpClient.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    updateLastSyncTime()
+                    SyncResult(true, "Anlık Supabase yedeği güncellendi.")
+                } else {
+                    val errBody = response.body?.string().orEmpty()
+                    SyncResult(false, "Supabase hatası (${response.code}): $errBody")
+                }
+            }
+        } catch (e: Exception) {
+            SyncResult(false, "Supabase bağlantı hatası: ${e.localizedMessage ?: "Ağ hatası"}")
+        }
+    }
+
+    /**
+     * Görev silindiğinde anlık olarak Supabase'den de siler
+     */
+    suspend fun deleteSingleTaskFromSupabase(taskId: Long): SyncResult = withContext(Dispatchers.IO) {
+        if (!isSupabaseConfigured()) {
+            return@withContext SyncResult(false, "Supabase yapılandırılmamış.")
+        }
+
+        val encodedAccount = URLEncoder.encode(getAccountKey(), "UTF-8")
+        val url = "${getBaseRestUrl()}?account_key=eq.$encodedAccount&id=eq.$taskId"
+
+        val request = Request.Builder()
+            .url(url)
+            .addSupabaseHeaders()
+            .delete()
+            .build()
+
+        return@withContext try {
+            httpClient.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    updateLastSyncTime()
+                    SyncResult(true, "Görev Supabase'den silindi.")
+                } else {
+                    SyncResult(false, "Supabase silme hatası (${response.code})")
+                }
+            }
+        } catch (e: Exception) {
+            SyncResult(false, "Supabase silme bağlantı hatası: ${e.localizedMessage}")
+        }
+    }
+
+    /**
+     * Tüm görev listesini toplu olarak Supabase'e UPSERT eder
+     */
+    suspend fun backupToSupabase(tasks: List<TaskEntity>): SyncResult = withContext(Dispatchers.IO) {
+        // Her durumda yerel JSON önbelleğini de güncel tut
         val jsonBackup = serializeTasksToJson(tasks)
-        prefs.edit()
-            .putString("cloud_json_snapshot", jsonBackup)
-            .putLong("last_sync_time", System.currentTimeMillis())
-            .apply()
+        prefs.edit().putString("cloud_json_snapshot", jsonBackup).apply()
 
-        updateLastSyncTime()
+        if (!isSupabaseConfigured()) {
+            return@withContext SyncResult(
+                false,
+                "Supabase bağlantı anahtarları eksik. Lütfen AI Studio Secrets panelinden SUPABASE_URL ve SUPABASE_ANON_KEY değerlerini girin."
+            )
+        }
 
-        return if (firestoreSuccess) {
-            SyncResult(true, "${tasks.size} görev başarıyla Firebase Bulut veritabanına yedeklendi.")
-        } else {
+        if (tasks.isEmpty()) {
+            updateLastSyncTime()
+            return@withContext SyncResult(true, "Yedeklenecek görev bulunmuyor.")
+        }
+
+        val accountKey = getAccountKey()
+        val payloadArray = JSONArray()
+        for (task in tasks) {
+            payloadArray.put(taskToSupabaseJson(task, accountKey))
+        }
+
+        val url = "${getBaseRestUrl()}?on_conflict=account_key,id"
+        val request = Request.Builder()
+            .url(url)
+            .addSupabaseHeaders()
+            .addHeader("Content-Type", "application/json")
+            .addHeader("Prefer", "resolution=merge-duplicates,return=minimal")
+            .post(payloadArray.toString().toRequestBody(jsonMediaType))
+            .build()
+
+        return@withContext try {
+            httpClient.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    updateLastSyncTime()
+                    SyncResult(
+                        true,
+                        "${tasks.size} görev Supabase ($accountKey) hesabına anlık yedeklendi."
+                    )
+                } else {
+                    val errBody = response.body?.string().orEmpty()
+                    SyncResult(
+                        false,
+                        "Supabase yedekleme hatası (${response.code}): ${errBody.take(120)}"
+                    )
+                }
+            }
+        } catch (e: Exception) {
             SyncResult(
-                true,
-                "${tasks.size} görev yerel bulut önbelleğine yedeklendi. (Firebase: ${if (errorMsg.isNotBlank()) errorMsg else "Çevrimdışı modda saklandı"})"
+                false,
+                "Supabase sunucusuna ulaşılamadı: ${e.localizedMessage ?: "İnternet bağlantınızı kontrol edin"}"
             )
         }
     }
 
-    suspend fun restoreFromCloud(): Pair<List<TaskEntity>?, SyncResult> {
-        try {
-            val app = try {
-                FirebaseApp.getInstance()
-            } catch (_: Exception) {
-                null
-            }
+    /**
+     * Supabase'den mevcut hesaba (account_key) ait tüm görevleri çeker
+     */
+    suspend fun fetchFromSupabase(): Pair<List<TaskEntity>?, SyncResult> = withContext(Dispatchers.IO) {
+        if (!isSupabaseConfigured()) {
+            return@withContext Pair(
+                null,
+                SyncResult(
+                    false,
+                    "Supabase yapılandırılmamış (SUPABASE_URL / SUPABASE_ANON_KEY bekleniyor)."
+                )
+            )
+        }
 
-            if (app != null) {
-                val db = FirebaseFirestore.getInstance()
-                val snapshot = db.collection("planflow_backups")
-                    .document(deviceId)
-                    .collection("tasks")
-                    .get()
-                    .await()
+        val accountKey = getAccountKey()
+        val encodedAccount = URLEncoder.encode(accountKey, "UTF-8")
+        val url = "${getBaseRestUrl()}?account_key=eq.$encodedAccount&select=*&order=updated_at_millis.desc"
 
-                if (!snapshot.isEmpty) {
-                    val restoredTasks = mutableListOf<TaskEntity>()
-                    for (doc in snapshot.documents) {
-                        val id = doc.getLong("id") ?: continue
-                        val title = doc.getString("title") ?: "İsimsiz Görev"
-                        val desc = doc.getString("description") ?: ""
-                        val dueDate = doc.getLong("dueDateMillis") ?: System.currentTimeMillis()
-                        val hour = doc.getLong("dueHour")?.toInt() ?: -1
-                        val min = doc.getLong("dueMinute")?.toInt() ?: -1
-                        val category = doc.getString("category") ?: "Genel"
-                        val priority = doc.getString("priority") ?: "NORMAL"
-                        val isCompleted = doc.getBoolean("isCompleted") ?: false
-                        val completedAt = doc.getLong("completedAtMillis")
-                        val hasReminder = doc.getBoolean("hasReminder") ?: false
-                        val reminderMins = doc.getLong("reminderMinutesBefore")?.toInt() ?: 15
-                        val updated = doc.getLong("updatedAtMillis") ?: System.currentTimeMillis()
+        val request = Request.Builder()
+            .url(url)
+            .addSupabaseHeaders()
+            .addHeader("Accept", "application/json")
+            .get()
+            .build()
 
-                        restoredTasks.add(
-                            TaskEntity(
-                                id = id,
-                                title = title,
-                                description = desc,
-                                dueDateMillis = dueDate,
-                                dueHour = hour,
-                                dueMinute = min,
-                                category = category,
-                                priority = priority,
-                                isCompleted = isCompleted,
-                                completedAtMillis = completedAt,
-                                hasReminder = hasReminder,
-                                reminderMinutesBefore = reminderMins,
-                                updatedAtMillis = updated
-                            )
+        return@withContext try {
+            httpClient.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val bodyStr = response.body?.string() ?: "[]"
+                    val remoteTasks = parseTasksFromSupabaseJson(bodyStr)
+                    updateLastSyncTime()
+                    Pair(
+                        remoteTasks,
+                        SyncResult(
+                            true,
+                            "Supabase ($accountKey) üzerinden ${remoteTasks.size} görev senkronize edildi."
                         )
-                    }
-
-                    if (restoredTasks.isNotEmpty()) {
-                        updateLastSyncTime()
-                        return Pair(
-                            restoredTasks,
-                            SyncResult(true, "${restoredTasks.size} görev Firestore bulutundan başarıyla geri yüklendi.")
+                    )
+                } else {
+                    val errBody = response.body?.string().orEmpty()
+                    Pair(
+                        null,
+                        SyncResult(
+                            false,
+                            "Supabase veri çekme hatası (${response.code}): ${errBody.take(120)}"
                         )
-                    }
+                    )
                 }
             }
-        } catch (_: Exception) {
-            // Fallback to local snapshot
-        }
-
-        // Fallback to JSON cache snapshot
-        val cachedJson = prefs.getString("cloud_json_snapshot", null)
-        if (!cachedJson.isNullOrBlank()) {
-            val tasks = parseTasksFromJson(cachedJson)
-            if (tasks.isNotEmpty()) {
-                updateLastSyncTime()
-                return Pair(
-                    tasks,
-                    SyncResult(true, "${tasks.size} görev bulut önbelleğinden geri yüklendi.")
+        } catch (e: Exception) {
+            Pair(
+                null,
+                SyncResult(
+                    false,
+                    "Supabase bağlantısı kurulamadı: ${e.localizedMessage ?: "Çevrimdışı yerel mod aktif"}"
                 )
-            }
+            )
         }
-
-        return Pair(null, SyncResult(false, "Bulutta kayıtlı yedek bulunamadı."))
     }
 
-    fun serializeTasksToJson(tasks: List<TaskEntity>): String {
-        val jsonArray = JSONArray()
-        for (task in tasks) {
-            val obj = JSONObject().apply {
-                put("id", task.id)
-                put("title", task.title)
-                put("description", task.description)
-                put("dueDateMillis", task.dueDateMillis)
-                put("dueHour", task.dueHour)
-                put("dueMinute", task.dueMinute)
-                put("category", task.category)
-                put("priority", task.priority)
-                put("isCompleted", task.isCompleted)
-                put("completedAtMillis", task.completedAtMillis ?: JSONObject.NULL)
-                put("hasReminder", task.hasReminder)
-                put("reminderMinutesBefore", task.reminderMinutesBefore)
-                put("updatedAtMillis", task.updatedAtMillis)
-            }
-            jsonArray.put(obj)
+    private fun taskToSupabaseJson(task: TaskEntity, accountKey: String): JSONObject {
+        return JSONObject().apply {
+            put("account_key", accountKey)
+            put("id", task.id)
+            put("title", task.title)
+            put("description", task.description)
+            put("due_date_millis", task.dueDateMillis)
+            put("due_hour", task.dueHour)
+            put("due_minute", task.dueMinute)
+            put("category", task.category)
+            put("priority", task.priority)
+            put("is_completed", task.isCompleted)
+            put("completed_at_millis", task.completedAtMillis ?: JSONObject.NULL)
+            put("has_reminder", task.hasReminder)
+            put("reminder_minutes_before", task.reminderMinutesBefore)
+            put("created_at_millis", task.createdAtMillis)
+            put("updated_at_millis", task.updatedAtMillis)
         }
-        return jsonArray.toString(2)
     }
 
-    fun parseTasksFromJson(jsonString: String): List<TaskEntity> {
+    private fun parseTasksFromSupabaseJson(jsonString: String): List<TaskEntity> {
         val tasks = mutableListOf<TaskEntity>()
         try {
             val array = JSONArray(jsonString)
@@ -225,20 +332,57 @@ class CloudSyncManager(private val context: Context) {
                         id = obj.optLong("id", 0L),
                         title = obj.optString("title", "Görev"),
                         description = obj.optString("description", ""),
-                        dueDateMillis = obj.optLong("dueDateMillis", System.currentTimeMillis()),
-                        dueHour = obj.optInt("dueHour", -1),
-                        dueMinute = obj.optInt("dueMinute", -1),
+                        dueDateMillis = obj.optLong(
+                            "due_date_millis",
+                            obj.optLong("dueDateMillis", System.currentTimeMillis())
+                        ),
+                        dueHour = obj.optInt("due_hour", obj.optInt("dueHour", -1)),
+                        dueMinute = obj.optInt("due_minute", obj.optInt("dueMinute", -1)),
                         category = obj.optString("category", "Genel"),
                         priority = obj.optString("priority", "NORMAL"),
-                        isCompleted = obj.optBoolean("isCompleted", false),
-                        completedAtMillis = if (obj.isNull("completedAtMillis")) null else obj.optLong("completedAtMillis"),
-                        hasReminder = obj.optBoolean("hasReminder", false),
-                        reminderMinutesBefore = obj.optInt("reminderMinutesBefore", 15),
-                        updatedAtMillis = obj.optLong("updatedAtMillis", System.currentTimeMillis())
+                        isCompleted = obj.optBoolean(
+                            "is_completed",
+                            obj.optBoolean("isCompleted", false)
+                        ),
+                        completedAtMillis = when {
+                            !obj.isNull("completed_at_millis") -> obj.optLong("completed_at_millis")
+                            !obj.isNull("completedAtMillis") -> obj.optLong("completedAtMillis")
+                            else -> null
+                        },
+                        hasReminder = obj.optBoolean(
+                            "has_reminder",
+                            obj.optBoolean("hasReminder", false)
+                        ),
+                        reminderMinutesBefore = obj.optInt(
+                            "reminder_minutes_before",
+                            obj.optInt("reminderMinutesBefore", 15)
+                        ),
+                        createdAtMillis = obj.optLong(
+                            "created_at_millis",
+                            obj.optLong("createdAtMillis", System.currentTimeMillis())
+                        ),
+                        updatedAtMillis = obj.optLong(
+                            "updated_at_millis",
+                            obj.optLong("updatedAtMillis", System.currentTimeMillis())
+                        )
                     )
                 )
             }
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+        }
         return tasks
+    }
+
+    fun serializeTasksToJson(tasks: List<TaskEntity>): String {
+        val jsonArray = JSONArray()
+        val accountKey = getAccountKey()
+        for (task in tasks) {
+            jsonArray.put(taskToSupabaseJson(task, accountKey))
+        }
+        return jsonArray.toString(2)
+    }
+
+    fun parseTasksFromJson(jsonString: String): List<TaskEntity> {
+        return parseTasksFromSupabaseJson(jsonString)
     }
 }

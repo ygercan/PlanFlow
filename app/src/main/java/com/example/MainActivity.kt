@@ -85,6 +85,8 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
     val syncMessage by viewModel.syncMessage.collectAsStateWithLifecycle()
     val lastSyncTime by viewModel.lastSyncTime.collectAsStateWithLifecycle()
+    val accountKey by viewModel.accountKey.collectAsStateWithLifecycle()
+    val isSupabaseConfigured by viewModel.isSupabaseConfigured.collectAsStateWithLifecycle()
 
     val showAddEditDialog by viewModel.showAddEditDialog.collectAsStateWithLifecycle()
     val editingTask by viewModel.editingTask.collectAsStateWithLifecycle()
@@ -212,12 +214,15 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
     if (showCloudSyncDialog) {
         CloudSyncDialog(
             lastSyncTime = lastSyncTime,
+            accountKey = accountKey,
+            isSupabaseConfigured = isSupabaseConfigured,
             isSyncing = isSyncing,
             syncMessage = syncMessage,
             onDismiss = {
                 viewModel.clearSyncMessage()
                 viewModel.dismissCloudSyncDialog()
             },
+            onUpdateAccountKey = { viewModel.updateAccountKey(it) },
             onSyncToCloud = { viewModel.syncToCloud() },
             onRestoreFromCloud = { viewModel.restoreFromCloud() },
             onGetExportJson = { viewModel.getExportJson() },

@@ -56,6 +56,12 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
     private val _lastSyncTime = MutableStateFlow(repository.cloudSyncManager.getLastSyncTimeString())
     val lastSyncTime: StateFlow<String> = _lastSyncTime.asStateFlow()
 
+    private val _accountKey = MutableStateFlow(repository.cloudSyncManager.getAccountKey())
+    val accountKey: StateFlow<String> = _accountKey.asStateFlow()
+
+    private val _isSupabaseConfigured = MutableStateFlow(repository.cloudSyncManager.isSupabaseConfigured())
+    val isSupabaseConfigured: StateFlow<Boolean> = _isSupabaseConfigured.asStateFlow()
+
     private val _editingTask = MutableStateFlow<TaskEntity?>(null)
     val editingTask: StateFlow<TaskEntity?> = _editingTask.asStateFlow()
 
@@ -96,7 +102,21 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
 
     init {
         viewModelScope.launch {
-            repository.seedInitialDataIfEmpty()
+            _isSyncing.value = true
+            try {
+                // 1. Önce yerel veritabanı boşsa Supabase'den çek veya örnek veri yükle
+                repository.seedInitialDataIfEmpty()
+
+                // 2. İlk açılışta otomatik olarak Supabase'den son halini çek ve updatedAtMillis ile eşitle
+                if (repository.cloudSyncManager.isSupabaseConfigured()) {
+                    val result = repository.syncOnStartupOrDemand()
+                    _syncMessage.value = result.message
+                }
+                _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
+            } catch (_: Exception) {
+            } finally {
+                _isSyncing.value = false
+            }
         }
     }
 
@@ -223,6 +243,7 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
                     )
                 )
             }
+            _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
             dismissAddEditDialog()
         }
     }
@@ -230,16 +251,21 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
     fun toggleTaskCompletion(taskId: Long) {
         viewModelScope.launch {
             repository.toggleTaskCompletion(taskId)
+            _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
         }
     }
 
     fun deleteTask(taskId: Long) {
         viewModelScope.launch {
             repository.deleteTask(taskId)
+            _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
         }
     }
 
     fun openCloudSyncDialog() {
+        _isSupabaseConfigured.value = repository.cloudSyncManager.isSupabaseConfigured()
+        _accountKey.value = repository.cloudSyncManager.getAccountKey()
+        _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
         _showCloudSyncDialog.value = true
     }
 
@@ -247,10 +273,16 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
         _showCloudSyncDialog.value = false
     }
 
+    fun updateAccountKey(newKey: String) {
+        repository.cloudSyncManager.setAccountKey(newKey)
+        _accountKey.value = repository.cloudSyncManager.getAccountKey()
+        restoreFromCloud()
+    }
+
     fun syncToCloud() {
         viewModelScope.launch {
             _isSyncing.value = true
-            _syncMessage.value = "Bulut senkronizasyonu başlatılıyor..."
+            _syncMessage.value = "Supabase'e anlık yedekleniyor..."
             try {
                 val result = repository.syncToCloud()
                 _syncMessage.value = result.message
@@ -266,13 +298,13 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
     fun restoreFromCloud() {
         viewModelScope.launch {
             _isSyncing.value = true
-            _syncMessage.value = "Buluttan yedek indiriliyor..."
+            _syncMessage.value = "Supabase ile eşitleniyor (updatedAtMillis)..."
             try {
                 val result = repository.restoreFromCloud()
                 _syncMessage.value = result.message
                 _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
             } catch (e: Exception) {
-                _syncMessage.value = "Geri yükleme hatası: ${e.localizedMessage}"
+                _syncMessage.value = "Eşitleme hatası: ${e.localizedMessage}"
             } finally {
                 _isSyncing.value = false
             }
@@ -287,7 +319,8 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val success = repository.importJson(json)
             if (success) {
-                _syncMessage.value = "Yedek başarıyla içe aktarıldı."
+                _syncMessage.value = "Yedek başarıyla içe aktarıldı ve Supabase'e gönderildi."
+                _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
             } else {
                 _syncMessage.value = "Geçersiz yedek verisi."
             }
