@@ -14,14 +14,14 @@ import androidx.core.view.WindowCompat
 import com.example.model.AppThemeMode
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF818CF8),
-    onPrimary = Color(0xFF0F172A),
-    primaryContainer = Color(0xFF242738),
-    onPrimaryContainer = Color(0xFFE0E7FF),
-    secondary = Color(0xFF38BDF8),
-    onSecondary = Color(0xFF0C4A6E),
-    secondaryContainer = Color(0xFF162A3B),
-    onSecondaryContainer = Color(0xFFBAE6FD),
+    primary = CoralToday,
+    onPrimary = Color.White,
+    primaryContainer = CoralTodayMutedDark,
+    onPrimaryContainer = CoralToday,
+    secondary = CoralToday,
+    onSecondary = Color.White,
+    secondaryContainer = CoralTodayMutedDark,
+    onSecondaryContainer = Color(0xFFFFB4AB),
     tertiary = AccentGreen,
     background = DarkBg,
     onBackground = DarkTextPrimary,
@@ -30,18 +30,18 @@ private val DarkColorScheme = darkColorScheme(
     surfaceVariant = DarkCardMuted,
     onSurfaceVariant = DarkTextSecondary,
     outline = DarkBorder,
-    outlineVariant = Color(0xFF1E2230)
+    outlineVariant = Color(0xFF242938)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = BrandIndigo,
+    primary = CoralToday,
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFEEF2FF),
-    onPrimaryContainer = Color(0xFF312E81),
-    secondary = Color(0xFF0284C7),
+    primaryContainer = CoralTodayMuted,
+    onPrimaryContainer = CoralDark,
+    secondary = CoralToday,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFE0F2FE),
-    onSecondaryContainer = Color(0xFF0369A1),
+    secondaryContainer = CoralTodayMuted,
+    onSecondaryContainer = CoralDark,
     tertiary = AccentGreen,
     background = LightBg,
     onBackground = LightTextPrimary,
@@ -50,7 +50,7 @@ private val LightColorScheme = lightColorScheme(
     surfaceVariant = LightCardMuted,
     onSurfaceVariant = LightTextSecondary,
     outline = LightBorder,
-    outlineVariant = Color(0xFFE5E7EB)
+    outlineVariant = Color(0xFFE0E4EC)
 )
 
 @Composable

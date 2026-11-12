@@ -9,11 +9,12 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.ui.theme.CoralToday
 
 enum class TaskPriority(val displayName: String, val color: Color, val containerColor: Color) {
-    LOW("Düşük", Color(0xFF10B981), Color(0xFFE8F5E9)),
-    NORMAL("Orta", Color(0xFF3B82F6), Color(0xFFEFF6FF)),
-    HIGH("Yüksek", Color(0xFFF59E0B), Color(0xFFFEF3C7)),
+    LOW("Düşük", Color(0xFF6B7280), Color(0xFFF3F4F6)),
+    NORMAL("Orta", CoralToday, Color(0xFFFFE5E3)),
+    HIGH("Yüksek", Color(0xFFF97316), Color(0xFFFFEDD5)),
     URGENT("Acil", Color(0xFFEF4444), Color(0xFFFEE2E2));
 
     companion object {
@@ -28,12 +29,12 @@ enum class TaskCategory(
     val color: Color,
     val icon: ImageVector
 ) {
-    GENEL("Genel", Color(0xFF6366F1), Icons.Default.Bookmark),
-    IS("İş", Color(0xFF2563EB), Icons.Default.Work),
-    KISISEL("Kişisel", Color(0xFF8B5CF6), Icons.Default.Person),
+    GENEL("Genel", CoralToday, Icons.Default.Bookmark),
+    IS("İş", Color(0xFFE05A50), Icons.Default.Work),
+    KISISEL("Kişisel", Color(0xFFF97316), Icons.Default.Person),
     SAGLIK("Sağlık", Color(0xFF10B981), Icons.Default.FitnessCenter),
-    ALISVERIS("Alışveriş", Color(0xFFF97316), Icons.Default.ShoppingCart),
-    EGITIM("Eğitim", Color(0xFF06B6D4), Icons.Default.School);
+    ALISVERIS("Alışveriş", Color(0xFFF59E0B), Icons.Default.ShoppingCart),
+    EGITIM("Eğitim", Color(0xFF6366F1), Icons.Default.School);
 
     companion object {
         fun fromTitle(title: String): TaskCategory {
@@ -67,4 +68,3 @@ data class DailyProgressState(
     val progressFraction: Float = 0f,
     val percentage: Int = 0
 )
-

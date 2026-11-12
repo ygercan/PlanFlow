@@ -114,7 +114,8 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
                 isSyncing = isSyncing,
                 onTabSelected = { viewModel.setActiveTab(it) },
                 onThemeToggle = { viewModel.toggleTheme() },
-                onCloudSyncClick = { viewModel.openCloudSyncDialog() }
+                onCloudSyncClick = { viewModel.openCloudSyncDialog() },
+                onOpenMenu = { viewModel.openMenuSheet() }
             )
         }
     ) { innerPadding ->

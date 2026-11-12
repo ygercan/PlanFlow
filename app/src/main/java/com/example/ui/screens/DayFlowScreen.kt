@@ -122,50 +122,24 @@ fun DayFlowScreen(
             }
         }
 
-        // Floating Action Buttons (Exact stack from screenshot)
-        Column(
+        // Solid Circular Floating Add Button (+)
+        Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 24.dp, bottom = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(end = 24.dp, bottom = 28.dp)
+                .size(54.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.onBackground)
+                .clickable { onAddTaskForDate(todayMillis) }
+                .testTag("floating_add_task_button"),
+            contentAlignment = Alignment.Center
         ) {
-            // Minimal Hamburger Menu Button (≡)
-            Box(
-                modifier = Modifier
-                    .size(46.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface)
-                    .shadow(elevation = 6.dp, shape = CircleShape)
-                    .clickable { onOpenMenu() }
-                    .testTag("floating_menu_button"),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Görünüm Menüsü",
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-
-            // Solid Black/Dark Floating Add Button (+)
-            Box(
-                modifier = Modifier
-                    .size(54.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onBackground)
-                    .clickable { onAddTaskForDate(todayMillis) }
-                    .testTag("floating_add_task_button"),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Yeni Görev Ekle",
-                    tint = MaterialTheme.colorScheme.background,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Yeni Görev Ekle",
+                tint = MaterialTheme.colorScheme.background,
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }
