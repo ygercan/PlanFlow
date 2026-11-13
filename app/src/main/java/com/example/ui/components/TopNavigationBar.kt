@@ -28,10 +28,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudSync
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -50,9 +47,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.ActiveTab
-import com.example.model.AppThemeMode
 import com.example.model.DailyProgressState
-import com.example.ui.theme.CoralToday
 import com.example.util.rememberHapticController
 
 @Composable
@@ -60,14 +55,11 @@ fun TopNavigationBar(
     currentTab: ActiveTab,
     pendingTaskCount: Int,
     dailyProgress: DailyProgressState,
-    themeMode: AppThemeMode,
     isSyncing: Boolean,
     hasUpdateAvailable: Boolean = false,
     statusBarTopPadding: Dp = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
     onTabSelected: (ActiveTab) -> Unit,
-    onThemeToggle: () -> Unit,
-    onCloudSyncClick: () -> Unit,
-    onOpenMenu: () -> Unit
+    onOpenSettings: () -> Unit
 ) {
     val haptics = rememberHapticController()
 
@@ -83,7 +75,7 @@ fun TopNavigationBar(
                 end = 20.dp
             )
     ) {
-        // Top Row: Daily Progress Bar on left, Uniform Circular Action Buttons on right
+        // Top Row: Daily Progress Bar on left, Single Clean Settings Button on right
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,80 +91,37 @@ fun TopNavigationBar(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // 1. Cloud Sync Circular Button
+            Box {
                 TopBarCircleButton(
                     onClick = {
                         haptics.performNavigationTap()
-                        onCloudSyncClick()
+                        onOpenSettings()
                     },
-                    testTag = "cloud_sync_button"
+                    testTag = "top_menu_button"
                 ) {
                     if (isSyncing) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp,
-                            color = CoralToday
+                            color = MaterialTheme.colorScheme.primary
                         )
                     } else {
                         Icon(
-                            imageVector = Icons.Default.CloudSync,
-                            contentDescription = "Bulut Senkronizasyonu",
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Ayarlar ve Görünüm",
                             tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(18.dp)
                         )
                     }
                 }
-
-                // 2. Theme Mode Circular Button
-                TopBarCircleButton(
-                    onClick = {
-                        haptics.performNavigationTap()
-                        onThemeToggle()
-                    },
-                    testTag = "theme_toggle_button"
-                ) {
-                    val icon = when (themeMode) {
-                        AppThemeMode.LIGHT -> Icons.Default.LightMode
-                        AppThemeMode.DARK -> Icons.Default.DarkMode
-                        AppThemeMode.SYSTEM -> Icons.Default.DarkMode
-                    }
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = "Tema Değiştir",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(18.dp)
+                if (hasUpdateAvailable) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(9.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
                     )
-                }
-
-                // 3. View Settings Menu Circular Button (next to Theme button)
-                Box {
-                    TopBarCircleButton(
-                        onClick = {
-                            haptics.performNavigationTap()
-                            onOpenMenu()
-                        },
-                        testTag = "top_menu_button"
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Menu,
-                            contentDescription = "Görünüm Menüsü",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                    if (hasUpdateAvailable) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .size(9.dp)
-                                .clip(CircleShape)
-                                .background(CoralToday)
-                        )
-                    }
                 }
             }
         }
@@ -197,7 +146,6 @@ fun TopNavigationBar(
             ActiveTab.entries.forEach { tab ->
                 val isSelected = currentTab == tab
 
-                // Distinct pill background that wraps the tab header content bounds
                 val pillBgColor by animateColorAsState(
                     targetValue = if (isSelected) {
                         MaterialTheme.colorScheme.primaryContainer
@@ -210,7 +158,7 @@ fun TopNavigationBar(
 
                 val textColor by animateColorAsState(
                     targetValue = if (isSelected) {
-                        CoralToday
+                        MaterialTheme.colorScheme.primary
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     },
@@ -230,7 +178,7 @@ fun TopNavigationBar(
                             if (isSelected) {
                                 Modifier.border(
                                     width = 1.dp,
-                                    color = CoralToday.copy(alpha = 0.6f),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
                                     shape = RoundedCornerShape(10.dp)
                                 )
                             } else {
@@ -267,7 +215,7 @@ fun TopNavigationBar(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(50))
                                 .background(
-                                    if (isSelected) CoralToday
+                                    if (isSelected) MaterialTheme.colorScheme.primary
                                     else MaterialTheme.colorScheme.surface
                                 )
                                 .padding(horizontal = 6.dp, vertical = 2.dp),
@@ -301,7 +249,7 @@ private fun TopBarCircleButton(
     val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
-            .defaultMinSize(minWidth = 38.dp, minHeight = 38.dp)
+            .defaultMinSize(minWidth = 40.dp, minHeight = 40.dp)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(
@@ -313,7 +261,7 @@ private fun TopBarCircleButton(
                 interactionSource = interactionSource,
                 indication = null
             ) { onClick() }
-            .padding(9.dp)
+            .padding(10.dp)
             .testTag(testTag),
         contentAlignment = Alignment.Center
     ) {
@@ -334,7 +282,7 @@ fun DailyTopProgressBar(
 
     val isAllDone = dailyProgress.totalCount > 0 && dailyProgress.completedCount == dailyProgress.totalCount
     val activeBarColor by animateColorAsState(
-        targetValue = if (isAllDone) Color(0xFF10B981) else CoralToday,
+        targetValue = if (isAllDone) Color(0xFF10B981) else MaterialTheme.colorScheme.primary,
         animationSpec = tween(durationMillis = 350),
         label = "top_daily_bar_color"
     )
@@ -384,7 +332,6 @@ fun DailyTopProgressBar(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // Progress track
         Box(
             modifier = Modifier
                 .fillMaxWidth()

@@ -7,6 +7,7 @@ import com.example.PlanFlowApplication
 import com.example.data.local.TaskEntity
 import com.example.data.repository.TaskRepository
 import com.example.model.ActiveTab
+import com.example.model.AppAccentTheme
 import com.example.model.AppThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,8 +28,11 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
     private val _showMenuSheet = MutableStateFlow(false)
     val showMenuSheet: StateFlow<Boolean> = _showMenuSheet.asStateFlow()
 
-    private val _themeMode = MutableStateFlow(AppThemeMode.SYSTEM)
+    private val _themeMode = MutableStateFlow(repository.getSavedThemeMode())
     val themeMode: StateFlow<AppThemeMode> = _themeMode.asStateFlow()
+
+    private val _accentTheme = MutableStateFlow(repository.getSavedAccentTheme())
+    val accentTheme: StateFlow<AppAccentTheme> = _accentTheme.asStateFlow()
 
     private val _selectedCalendarDateMillis = MutableStateFlow(
         TaskRepository.getDayStartMillis(System.currentTimeMillis())
@@ -174,14 +178,21 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
 
     fun setThemeMode(mode: AppThemeMode) {
         _themeMode.value = mode
+        repository.saveThemeMode(mode)
+    }
+
+    fun setAccentTheme(accent: AppAccentTheme) {
+        _accentTheme.value = accent
+        repository.saveAccentTheme(accent)
     }
 
     fun toggleTheme() {
-        _themeMode.value = when (_themeMode.value) {
+        val next = when (_themeMode.value) {
             AppThemeMode.LIGHT -> AppThemeMode.DARK
             AppThemeMode.DARK -> AppThemeMode.SYSTEM
             AppThemeMode.SYSTEM -> AppThemeMode.LIGHT
         }
+        setThemeMode(next)
     }
 
     fun setSelectedCalendarDate(dateMillis: Long) {
@@ -258,7 +269,9 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
         category: String,
         priority: String,
         hasReminder: Boolean,
-        reminderMinutesBefore: Int
+        reminderMinutesBefore: Int,
+        recurrenceRule: String = "NONE",
+        subtasksJson: String = "[]"
     ) {
         viewModelScope.launch {
             if (id == 0L) {
@@ -272,7 +285,9 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
                         category = category,
                         priority = priority,
                         hasReminder = hasReminder,
-                        reminderMinutesBefore = reminderMinutesBefore
+                        reminderMinutesBefore = reminderMinutesBefore,
+                        recurrenceRule = recurrenceRule,
+                        subtasksJson = subtasksJson
                     )
                 )
             } else {
@@ -287,7 +302,9 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
                         category = category,
                         priority = priority,
                         hasReminder = hasReminder,
-                        reminderMinutesBefore = reminderMinutesBefore
+                        reminderMinutesBefore = reminderMinutesBefore,
+                        recurrenceRule = recurrenceRule,
+                        subtasksJson = subtasksJson
                     )
                 )
             }
@@ -300,6 +317,41 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             repository.toggleTaskCompletion(taskId)
             _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
+        }
+    }
+
+    fun toggleSubtask(taskId: Long, subtaskId: String) {
+        viewModelScope.launch {
+            repository.toggleSubtask(taskId, subtaskId)
+            _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
+        }
+    }
+
+    fun rescheduleOverdueTasksToToday() {
+        viewModelScope.launch {
+            val moved = repository.rescheduleOverdueTasksToToday()
+            if (moved > 0) {
+                _syncMessage.value = "$moved gecikmiş görev bugüne aktarıldı."
+                _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
+            }
+        }
+    }
+
+    fun rescheduleSingleTaskToToday(taskId: Long) {
+        viewModelScope.launch {
+            repository.rescheduleSingleTaskToToday(taskId)
+            _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
+        }
+    }
+
+    fun clearCompletedTasks(onCleared: (Int) -> Unit = {}) {
+        viewModelScope.launch {
+            val count = repository.clearCompletedTasks()
+            _lastSyncTime.value = repository.cloudSyncManager.getLastSyncTimeString()
+            if (count > 0) {
+                _syncMessage.value = "$count tamamlanmış görev temizlendi."
+            }
+            onCleared(count)
         }
     }
 

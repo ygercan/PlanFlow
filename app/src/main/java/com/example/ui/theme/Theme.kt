@@ -11,51 +11,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.example.model.AppAccentTheme
 import com.example.model.AppThemeMode
-
-private val DarkColorScheme = darkColorScheme(
-    primary = CoralToday,
-    onPrimary = Color.White,
-    primaryContainer = CoralTodayMutedDark,
-    onPrimaryContainer = CoralToday,
-    secondary = CoralToday,
-    onSecondary = Color.White,
-    secondaryContainer = CoralTodayMutedDark,
-    onSecondaryContainer = Color(0xFFFFB4AB),
-    tertiary = AccentGreen,
-    background = DarkBg,
-    onBackground = DarkTextPrimary,
-    surface = DarkCard,
-    onSurface = DarkTextPrimary,
-    surfaceVariant = DarkCardMuted,
-    onSurfaceVariant = DarkTextSecondary,
-    outline = DarkBorder,
-    outlineVariant = Color(0xFF242938)
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = CoralToday,
-    onPrimary = Color.White,
-    primaryContainer = CoralTodayMuted,
-    onPrimaryContainer = CoralDark,
-    secondary = CoralToday,
-    onSecondary = Color.White,
-    secondaryContainer = CoralTodayMuted,
-    onSecondaryContainer = CoralDark,
-    tertiary = AccentGreen,
-    background = LightBg,
-    onBackground = LightTextPrimary,
-    surface = LightCard,
-    onSurface = LightTextPrimary,
-    surfaceVariant = LightCardMuted,
-    onSurfaceVariant = LightTextSecondary,
-    outline = LightBorder,
-    outlineVariant = Color(0xFFE0E4EC)
-)
 
 @Composable
 fun PlanFlowTheme(
     themeMode: AppThemeMode = AppThemeMode.SYSTEM,
+    accentTheme: AppAccentTheme = AppAccentTheme.CORAL,
     content: @Composable () -> Unit
 ) {
     val darkTheme = when (themeMode) {
@@ -64,7 +26,47 @@ fun PlanFlowTheme(
         AppThemeMode.DARK -> true
     }
 
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colorScheme = if (darkTheme) {
+        darkColorScheme(
+            primary = accentTheme.primary,
+            onPrimary = Color.White,
+            primaryContainer = accentTheme.mutedDark,
+            onPrimaryContainer = accentTheme.primary,
+            secondary = accentTheme.primary,
+            onSecondary = Color.White,
+            secondaryContainer = accentTheme.mutedDark,
+            onSecondaryContainer = accentTheme.mutedLight,
+            tertiary = AccentGreen,
+            background = DarkBg,
+            onBackground = DarkTextPrimary,
+            surface = DarkCard,
+            onSurface = DarkTextPrimary,
+            surfaceVariant = DarkCardMuted,
+            onSurfaceVariant = DarkTextSecondary,
+            outline = DarkBorder,
+            outlineVariant = Color(0xFF242938)
+        )
+    } else {
+        lightColorScheme(
+            primary = accentTheme.primary,
+            onPrimary = Color.White,
+            primaryContainer = accentTheme.mutedLight,
+            onPrimaryContainer = accentTheme.darkAccent,
+            secondary = accentTheme.primary,
+            onSecondary = Color.White,
+            secondaryContainer = accentTheme.mutedLight,
+            onSecondaryContainer = accentTheme.darkAccent,
+            tertiary = AccentGreen,
+            background = LightBg,
+            onBackground = LightTextPrimary,
+            surface = LightCard,
+            onSurface = LightTextPrimary,
+            surfaceVariant = LightCardMuted,
+            onSurfaceVariant = LightTextSecondary,
+            outline = LightBorder,
+            outlineVariant = Color(0xFFE0E4EC)
+        )
+    }
 
     val view = LocalView.current
     if (!view.isInEditMode) {

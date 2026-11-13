@@ -3,6 +3,10 @@ package com.example.data.repository
 import android.content.Context
 import com.example.data.local.TaskDao
 import com.example.data.local.TaskEntity
+import com.example.model.AppAccentTheme
+import com.example.model.AppThemeMode
+import com.example.model.RecurrenceRule
+import com.example.model.SubtaskCodec
 import com.example.model.SyncResult
 import com.example.notification.NotificationHelper
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +30,24 @@ class TaskRepository(
     val cloudSyncManager = CloudSyncManager(context)
     val gitHubReleaseManager = GitHubReleaseManager(context)
     private val appContext = context.applicationContext
+    private val uiPrefs = appContext.getSharedPreferences("planflow_ui_prefs", Context.MODE_PRIVATE)
     private val syncScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    fun getSavedThemeMode(): AppThemeMode {
+        return AppThemeMode.fromString(uiPrefs.getString("theme_mode", AppThemeMode.SYSTEM.name))
+    }
+
+    fun saveThemeMode(mode: AppThemeMode) {
+        uiPrefs.edit().putString("theme_mode", mode.name).apply()
+    }
+
+    fun getSavedAccentTheme(): AppAccentTheme {
+        return AppAccentTheme.fromString(uiPrefs.getString("accent_theme", AppAccentTheme.CORAL.name))
+    }
+
+    fun saveAccentTheme(accent: AppAccentTheme) {
+        uiPrefs.edit().putString("accent_theme", accent.name).apply()
+    }
 
     val allTasks: Flow<List<TaskEntity>> = taskDao.getAllTasks()
     val pendingTasks: Flow<List<TaskEntity>> = taskDao.getPendingTasks()
@@ -115,11 +136,128 @@ class TaskRepository(
             updatedAtMillis = now,
             updatedAt = Date(now)
         )
-        taskDao.updateTask(updatedTask)
 
+        val rule = RecurrenceRule.fromString(task.recurrenceRule)
+        if (newStatus && rule != RecurrenceRule.NONE) {
+            val nextDueDateMillis = calculateNextRecurrenceMillis(task.dueDateMillis, rule)
+            val nextDraft = task.copy(
+                id = 0,
+                dueDateMillis = nextDueDateMillis,
+                isCompleted = false,
+                completedAtMillis = null,
+                subtasksJson = SubtaskCodec.resetAll(task.subtasksJson),
+                reminderScheduledTimeMillis = null,
+                createdAtMillis = now,
+                updatedAtMillis = now,
+                createdAt = Date(now),
+                updatedAt = Date(now)
+            )
+            val nextId = taskDao.completeRecurringTaskAtomically(updatedTask, nextDraft)
+            var savedNext = nextDraft.copy(id = nextId)
+            if (savedNext.hasReminder) {
+                val reminderTime = calculateReminderTime(savedNext)
+                if (reminderTime > now) {
+                    savedNext = savedNext.copy(reminderScheduledTimeMillis = reminderTime)
+                    taskDao.updateTask(savedNext)
+                    notificationHelper.scheduleTaskReminder(savedNext, reminderTime)
+                }
+            }
+            val nextToSync = savedNext
+            syncScope.launch {
+                cloudSyncManager.pushSingleTaskToSupabase(updatedTask)
+                cloudSyncManager.pushSingleTaskToSupabase(nextToSync)
+            }
+        } else {
+            taskDao.updateTask(updatedTask)
+            syncScope.launch {
+                cloudSyncManager.pushSingleTaskToSupabase(updatedTask)
+            }
+        }
+    }
+
+    suspend fun toggleSubtask(taskId: Long, subtaskId: String) {
+        val task = taskDao.getTaskByIdDirect(taskId) ?: return
+        val items = SubtaskCodec.parse(task.subtasksJson)
+        if (items.isEmpty()) return
+        val updatedItems = items.map { item ->
+            if (item.id == subtaskId) item.copy(isDone = !item.isDone) else item
+        }
+        val now = System.currentTimeMillis()
+        val updatedTask = task.copy(
+            subtasksJson = SubtaskCodec.encode(updatedItems),
+            updatedAtMillis = now,
+            updatedAt = Date(now)
+        )
+        taskDao.updateTask(updatedTask)
         syncScope.launch {
             cloudSyncManager.pushSingleTaskToSupabase(updatedTask)
         }
+    }
+
+    suspend fun rescheduleOverdueTasksToToday(): Int {
+        val todayStart = getDayStartMillis(System.currentTimeMillis())
+        val now = System.currentTimeMillis()
+        val overdue = taskDao.getAllTasksDirect().filter {
+            !it.isCompleted && it.dueDateMillis < todayStart
+        }
+        if (overdue.isEmpty()) return 0
+
+        val rescheduled = overdue.map { task ->
+            notificationHelper.cancelTaskReminder(task.id)
+            var updated = task.copy(
+                dueDateMillis = todayStart,
+                updatedAtMillis = now,
+                updatedAt = Date(now)
+            )
+            if (updated.hasReminder) {
+                val reminderTime = calculateReminderTime(updated)
+                if (reminderTime > now) {
+                    updated = updated.copy(reminderScheduledTimeMillis = reminderTime)
+                    notificationHelper.scheduleTaskReminder(updated, reminderTime)
+                }
+            }
+            updated
+        }
+
+        val count = taskDao.rescheduleTasksAtomically(rescheduled)
+        syncScope.launch {
+            cloudSyncManager.backupToSupabase(rescheduled)
+        }
+        return count
+    }
+
+    suspend fun rescheduleSingleTaskToToday(taskId: Long) {
+        val task = taskDao.getTaskByIdDirect(taskId) ?: return
+        val todayStart = getDayStartMillis(System.currentTimeMillis())
+        val now = System.currentTimeMillis()
+        notificationHelper.cancelTaskReminder(task.id)
+        var updated = task.copy(
+            dueDateMillis = todayStart,
+            updatedAtMillis = now,
+            updatedAt = Date(now)
+        )
+        if (updated.hasReminder) {
+            val reminderTime = calculateReminderTime(updated)
+            if (reminderTime > now) {
+                updated = updated.copy(reminderScheduledTimeMillis = reminderTime)
+                notificationHelper.scheduleTaskReminder(updated, reminderTime)
+            }
+        }
+        taskDao.updateTask(updated)
+        syncScope.launch {
+            cloudSyncManager.pushSingleTaskToSupabase(updated)
+        }
+    }
+
+    suspend fun clearCompletedTasks(): Int {
+        val completed = taskDao.getAllTasksDirect().filter { it.isCompleted }
+        if (completed.isEmpty()) return 0
+        completed.forEach { notificationHelper.cancelTaskReminder(it.id) }
+        val deletedCount = taskDao.deleteCompletedTasks()
+        syncScope.launch {
+            completed.forEach { cloudSyncManager.deleteSingleTaskFromSupabase(it.id) }
+        }
+        return deletedCount
     }
 
     suspend fun deleteTask(taskId: Long) {
@@ -414,6 +552,19 @@ class TaskRepository(
             cal.set(Calendar.SECOND, 59)
             cal.set(Calendar.MILLISECOND, 999)
             return cal.timeInMillis
+        }
+
+        fun calculateNextRecurrenceMillis(currentDueDateMillis: Long, rule: RecurrenceRule): Long {
+            val cal = Calendar.getInstance().apply {
+                timeInMillis = getDayStartMillis(currentDueDateMillis)
+            }
+            when (rule) {
+                RecurrenceRule.DAILY -> cal.add(Calendar.DAY_OF_YEAR, 1)
+                RecurrenceRule.WEEKLY -> cal.add(Calendar.WEEK_OF_YEAR, 1)
+                RecurrenceRule.MONTHLY -> cal.add(Calendar.MONTH, 1)
+                RecurrenceRule.NONE -> {}
+            }
+            return getDayStartMillis(cal.timeInMillis)
         }
 
         fun calculateDailyProgress(todayTasks: List<TaskEntity>): com.example.model.DailyProgressState {

@@ -22,9 +22,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +48,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.TaskEntity
+import com.example.model.RecurrenceRule
+import com.example.model.SubtaskCodec
 import com.example.model.TaskCategory
 import com.example.model.TaskPriority
 import com.example.util.rememberHapticController
@@ -57,6 +61,7 @@ import java.util.Locale
 fun TaskItemCard(
     task: TaskEntity,
     onToggleComplete: () -> Unit,
+    onToggleSubtask: (String) -> Unit = {},
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
@@ -66,6 +71,9 @@ fun TaskItemCard(
 
     val category = TaskCategory.fromTitle(task.category)
     val priority = TaskPriority.fromString(task.priority)
+    val recurrence = RecurrenceRule.fromString(task.recurrenceRule)
+    val subtasks = remember(task.subtasksJson) { SubtaskCodec.parse(task.subtasksJson) }
+    val doneSubtasks = subtasks.count { it.isDone }
 
     val contentAlpha by animateFloatAsState(
         targetValue = if (task.isCompleted) 0.45f else 1f,
@@ -162,7 +170,42 @@ fun TaskItemCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Time tag
+                // Subtask progress badge
+                if (subtasks.isNotEmpty()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(horizontal = 5.dp, vertical = 2.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Checklist,
+                            contentDescription = "Alt görevler",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(11.dp)
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Text(
+                            text = "$doneSubtasks/${subtasks.size}",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // Recurrence indicator
+                if (recurrence != RecurrenceRule.NONE) {
+                    Icon(
+                        imageVector = Icons.Default.Repeat,
+                        contentDescription = "Tekrarlayan: ${recurrence.displayName}",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
+
+                // Time tag (24h)
                 if (task.dueHour >= 0 && task.dueMinute >= 0) {
                     val timeStr = String.format(Locale.getDefault(), "%02d:%02d", task.dueHour, task.dueMinute)
                     Text(
@@ -202,7 +245,7 @@ fun TaskItemCard(
             }
         }
 
-        // Expanded detail row (on tap)
+        // Expanded detail row & interactive checklist (on tap)
         AnimatedVisibility(visible = expanded) {
             Column(
                 modifier = Modifier
@@ -215,6 +258,61 @@ fun TaskItemCard(
                         .height(1.dp)
                         .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 )
+
+                // Interactive Subtasks inside Card
+                if (subtasks.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        subtasks.forEach { sub ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable {
+                                        haptics.performTaskCompletion(isCompleting = !sub.isDone)
+                                        onToggleSubtask(sub.id)
+                                    }
+                                    .padding(vertical = 3.dp, horizontal = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(17.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (sub.isDone) MaterialTheme.colorScheme.primary
+                                            else Color.Transparent
+                                        )
+                                        .border(
+                                            width = 1.4.dp,
+                                            color = if (sub.isDone) MaterialTheme.colorScheme.primary
+                                            else MaterialTheme.colorScheme.outline,
+                                            shape = CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (sub.isDone) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(10.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = sub.title,
+                                    fontSize = 12.sp,
+                                    color = if (sub.isDone) MaterialTheme.colorScheme.onSurfaceVariant
+                                    else MaterialTheme.colorScheme.onSurface,
+                                    textDecoration = if (sub.isDone) TextDecoration.LineThrough else TextDecoration.None
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
@@ -222,7 +320,6 @@ fun TaskItemCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Full Date info & Category label
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = category.title,
@@ -234,6 +331,13 @@ fun TaskItemCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        if (recurrence != RecurrenceRule.NONE) {
+                            Text(
+                                text = " · ${recurrence.shortLabel}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                         if (task.priority != "NORMAL") {
                             Text(
                                 text = " · ${priority.displayName}",
@@ -243,11 +347,10 @@ fun TaskItemCard(
                         }
                     }
 
-                    // Action buttons
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(
                             onClick = onEdit,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(32.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
@@ -259,7 +362,7 @@ fun TaskItemCard(
                         Spacer(modifier = Modifier.width(4.dp))
                         IconButton(
                             onClick = onDelete,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(32.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.DeleteOutline,

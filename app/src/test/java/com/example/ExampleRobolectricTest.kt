@@ -211,5 +211,81 @@ class ExampleRobolectricTest {
         assertTrue(result.success)
         assertEquals(2, dao.getAllTasksDirect().size)
     }
+
+    @Test
+    fun `subtask codec encodes, parses, and resets completion flags`() {
+        val items = listOf(
+            com.example.model.SubtaskItem(id = "s1", title = "Su al", isDone = true),
+            com.example.model.SubtaskItem(id = "s2", title = "Ekmek al", isDone = false)
+        )
+        val encoded = com.example.model.SubtaskCodec.encode(items)
+        val parsed = com.example.model.SubtaskCodec.parse(encoded)
+        assertEquals(2, parsed.size)
+        assertEquals("Su al", parsed[0].title)
+        assertTrue(parsed[0].isDone)
+        org.junit.Assert.assertFalse(parsed[1].isDone)
+
+        val reset = com.example.model.SubtaskCodec.parse(com.example.model.SubtaskCodec.resetAll(encoded))
+        assertTrue(reset.all { !it.isDone })
+    }
+
+    @Test
+    fun `completing daily recurring task creates next day occurrence with reset subtasks`() = runTest {
+        val dao = database.taskDao()
+        val todayStart = TaskRepository.getDayStartMillis(System.currentTimeMillis())
+        val subtasksJson = com.example.model.SubtaskCodec.encode(
+            listOf(com.example.model.SubtaskItem(id = "a1", title = "Kontrol", isDone = true))
+        )
+
+        val taskId = dao.insertTask(
+            TodoItem(
+                title = "Günlük Standup",
+                dueDateMillis = todayStart,
+                dueHour = 9,
+                dueMinute = 30,
+                recurrenceRule = "DAILY",
+                subtasksJson = subtasksJson,
+                isCompleted = false
+            )
+        )
+
+        repository.toggleTaskCompletion(taskId)
+
+        val all = dao.getAllTasksDirect()
+        assertEquals(2, all.size)
+        val original = all.first { it.id == taskId }
+        val next = all.first { it.id != taskId }
+        assertTrue(original.isCompleted)
+        org.junit.Assert.assertFalse(next.isCompleted)
+        assertEquals("Günlük Standup", next.title)
+        assertEquals("DAILY", next.recurrenceRule)
+        assertTrue(next.dueDateMillis > todayStart)
+
+        val nextSubtasks = com.example.model.SubtaskCodec.parse(next.subtasksJson)
+        assertEquals(1, nextSubtasks.size)
+        org.junit.Assert.assertFalse(nextSubtasks.first().isDone)
+    }
+
+    @Test
+    fun `rescheduleOverdueTasksToToday moves only incomplete past tasks`() = runTest {
+        val dao = database.taskDao()
+        val todayStart = TaskRepository.getDayStartMillis(System.currentTimeMillis())
+        val twoDaysAgo = todayStart - 2 * 24L * 60L * 60L * 1000L
+
+        val overduePendingId = dao.insertTask(
+            TodoItem(title = "Gecikmiş Görev", dueDateMillis = twoDaysAgo, isCompleted = false)
+        )
+        val overdueCompletedId = dao.insertTask(
+            TodoItem(title = "Geçmiş Tamamlanan", dueDateMillis = twoDaysAgo, isCompleted = true)
+        )
+
+        val moved = repository.rescheduleOverdueTasksToToday()
+        assertEquals(1, moved)
+
+        val movedTask = dao.getTaskByIdDirect(overduePendingId)
+        val untouchedTask = dao.getTaskByIdDirect(overdueCompletedId)
+        assertEquals(todayStart, movedTask?.dueDateMillis)
+        assertEquals(twoDaysAgo, untouchedTask?.dueDateMillis)
+    }
 }
 

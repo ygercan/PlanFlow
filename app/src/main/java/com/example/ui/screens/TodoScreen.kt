@@ -27,7 +27,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.TaskEntity
+import com.example.data.repository.TaskRepository
 import com.example.model.TaskCategory
 import com.example.ui.components.TaskItemCard
 
@@ -63,12 +66,16 @@ fun TodoScreen(
     onPrioritySelect: (String?) -> Unit,
     onAddTask: () -> Unit,
     onToggleTask: (Long) -> Unit,
+    onToggleSubtask: (Long, String) -> Unit = { _, _ -> },
+    onRescheduleOverdue: () -> Unit = {},
     onEditTask: (TaskEntity) -> Unit,
     onDeleteTask: (Long) -> Unit
 ) {
     var showCompleted by remember { mutableStateOf(false) }
 
+    val todayMillis = remember { TaskRepository.getDayStartMillis(System.currentTimeMillis()) }
     val pending = tasks.filter { !it.isCompleted }
+    val overduePending = pending.filter { it.dueDateMillis < todayMillis }
     val completed = tasks.filter { it.isCompleted }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -159,6 +166,69 @@ fun TodoScreen(
                 }
             }
 
+            // Compact Overdue Rescue Strip in Todo View
+            if (overduePending.isNotEmpty()) {
+                item(key = "todo_overdue_banner") {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f))
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .padding(horizontal = 12.dp, vertical = 10.dp)
+                            .testTag("todo_overdue_rescue_banner"),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.EventRepeat,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "${overduePending.size} gecikmiş görev",
+                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .background(MaterialTheme.colorScheme.primary)
+                                .clickable { onRescheduleOverdue() }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                                .testTag("todo_reschedule_all_button"),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Today,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Spacer(modifier = Modifier.width(5.dp))
+                            Text(
+                                text = "Bugüne Aktar",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+
             // Section: Pending Tasks
             if (pending.isEmpty() && completed.isEmpty()) {
                 item {
@@ -197,6 +267,7 @@ fun TodoScreen(
                         TaskItemCard(
                             task = task,
                             onToggleComplete = { onToggleTask(task.id) },
+                            onToggleSubtask = { subId -> onToggleSubtask(task.id, subId) },
                             onEdit = { onEditTask(task) },
                             onDelete = { onDeleteTask(task.id) }
                         )
@@ -234,6 +305,7 @@ fun TodoScreen(
                             TaskItemCard(
                                 task = task,
                                 onToggleComplete = { onToggleTask(task.id) },
+                                onToggleSubtask = { subId -> onToggleSubtask(task.id, subId) },
                                 onEdit = { onEditTask(task) },
                                 onDelete = { onDeleteTask(task.id) }
                             )

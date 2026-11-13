@@ -58,6 +58,7 @@ fun CalendarScreen(
     onJumpToToday: () -> Unit,
     onAddTaskForDate: (Long) -> Unit,
     onToggleTask: (Long) -> Unit,
+    onToggleSubtask: (Long, String) -> Unit = { _, _ -> },
     onEditTask: (TaskEntity) -> Unit,
     onDeleteTask: (Long) -> Unit
 ) {
@@ -315,6 +316,7 @@ fun CalendarScreen(
                 TaskItemCard(
                     task = task,
                     onToggleComplete = { onToggleTask(task.id) },
+                    onToggleSubtask = { subId -> onToggleSubtask(task.id, subId) },
                     onEdit = { onEditTask(task) },
                     onDelete = { onDeleteTask(task.id) }
                 )

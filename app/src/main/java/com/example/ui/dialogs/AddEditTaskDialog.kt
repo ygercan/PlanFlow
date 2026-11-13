@@ -21,8 +21,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -31,6 +35,7 @@ import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -55,14 +60,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.data.local.TaskEntity
+import com.example.model.RecurrenceRule
+import com.example.model.SubtaskCodec
+import com.example.model.SubtaskItem
 import com.example.model.TaskCategory
 import com.example.model.TaskPriority
-import com.example.ui.theme.CoralToday
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -82,7 +90,9 @@ fun AddEditTaskDialog(
         category: String,
         priority: String,
         hasReminder: Boolean,
-        reminderMinutesBefore: Int
+        reminderMinutesBefore: Int,
+        recurrenceRule: String,
+        subtasksJson: String
     ) -> Unit
 ) {
     var title by remember { mutableStateOf(initialTask?.title ?: "") }
@@ -95,10 +105,17 @@ fun AddEditTaskDialog(
     var selectedPriority by remember { mutableStateOf(initialTask?.priority ?: "NORMAL") }
     var hasReminder by remember { mutableStateOf(initialTask?.hasReminder ?: false) }
     var reminderMinutesBefore by remember { mutableIntStateOf(initialTask?.reminderMinutesBefore ?: 15) }
+    var selectedRecurrence by remember {
+        mutableStateOf(RecurrenceRule.fromString(initialTask?.recurrenceRule).name)
+    }
+    var subtasks by remember { mutableStateOf(SubtaskCodec.parse(initialTask?.subtasksJson)) }
+    var newSubtaskTitle by remember { mutableStateOf("") }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var titleError by remember { mutableStateOf(false) }
+
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = dueDateMillis
@@ -111,11 +128,11 @@ fun AddEditTaskDialog(
     )
 
     val textFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = CoralToday,
+        focusedBorderColor = primaryColor,
         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-        focusedLabelColor = CoralToday,
+        focusedLabelColor = primaryColor,
         unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        cursorColor = CoralToday,
+        cursorColor = primaryColor,
         focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
     )
@@ -141,7 +158,7 @@ fun AddEditTaskDialog(
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
             ) {
-                // Editorial Header with Coral Accent Dot
+                // Editorial Header with Accent Dot
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -150,7 +167,7 @@ fun AddEditTaskDialog(
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(CoralToday)
+                            .background(primaryColor)
                     )
                     Text(
                         text = if (initialTask == null) "Yeni Görev Ekle" else "Görevi Düzenle",
@@ -199,7 +216,124 @@ fun AddEditTaskDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Category Selection (Unified Coral & Minimalist Pills)
+                // Subtasks (Checklist) Builder
+                Text(
+                    text = "Alt Görevler (Kontrol Listesi)",
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = newSubtaskTitle,
+                        onValueChange = { newSubtaskTitle = it },
+                        placeholder = { Text("Alt adım ekle...", fontSize = 12.sp) },
+                        singleLine = true,
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("subtask_input"),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = textFieldColors
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(primaryColor)
+                            .clickable {
+                                val trimmed = newSubtaskTitle.trim()
+                                if (trimmed.isNotEmpty()) {
+                                    subtasks = subtasks + SubtaskItem(title = trimmed)
+                                    newSubtaskTitle = ""
+                                }
+                            }
+                            .testTag("add_subtask_button"),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Alt Görev Ekle",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                if (subtasks.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f))
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        subtasks.forEach { item ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .clip(CircleShape)
+                                        .background(if (item.isDone) primaryColor else Color.Transparent)
+                                        .border(
+                                            width = 1.5.dp,
+                                            color = if (item.isDone) primaryColor else MaterialTheme.colorScheme.outline,
+                                            shape = CircleShape
+                                        )
+                                        .clickable {
+                                            subtasks = subtasks.map {
+                                                if (it.id == item.id) it.copy(isDone = !it.isDone) else it
+                                            }
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (item.isDone) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = item.title,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (item.isDone) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                                    textDecoration = if (item.isDone) TextDecoration.LineThrough else TextDecoration.None,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                IconButton(
+                                    onClick = {
+                                        subtasks = subtasks.filterNot { it.id == item.id }
+                                    },
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Alt görevi kaldır",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Category Selection
                 Text(
                     text = "Kategori",
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
@@ -215,7 +349,7 @@ fun AddEditTaskDialog(
                     TaskCategory.entries.forEach { cat ->
                         val isSelected = selectedCategory.equals(cat.title, ignoreCase = true)
                         val pillBg by animateColorAsState(
-                            targetValue = if (isSelected) CoralToday else MaterialTheme.colorScheme.surfaceVariant,
+                            targetValue = if (isSelected) primaryColor else MaterialTheme.colorScheme.surfaceVariant,
                             label = "cat_bg_${cat.name}"
                         )
                         val pillContentColor by animateColorAsState(
@@ -229,7 +363,7 @@ fun AddEditTaskDialog(
                                 .background(pillBg)
                                 .border(
                                     width = 1.dp,
-                                    color = if (isSelected) CoralToday else MaterialTheme.colorScheme.outline.copy(alpha = 0.65f),
+                                    color = if (isSelected) primaryColor else MaterialTheme.colorScheme.outline.copy(alpha = 0.65f),
                                     shape = RoundedCornerShape(10.dp)
                                 )
                                 .clickable { selectedCategory = cat.title }
@@ -239,7 +373,7 @@ fun AddEditTaskDialog(
                             Icon(
                                 imageVector = cat.icon,
                                 contentDescription = null,
-                                tint = if (isSelected) Color.White else CoralToday,
+                                tint = if (isSelected) Color.White else primaryColor,
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
@@ -255,7 +389,7 @@ fun AddEditTaskDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Priority Selection (Unified Coral & Minimalist Pills)
+                // Priority Selection
                 Text(
                     text = "Öncelik Derecesi",
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
@@ -270,7 +404,7 @@ fun AddEditTaskDialog(
                 ) {
                     TaskPriority.entries.forEach { pri ->
                         val isSelected = selectedPriority.equals(pri.name, ignoreCase = true)
-                        val activeColor = if (pri == TaskPriority.URGENT) Color(0xFFEF4444) else CoralToday
+                        val activeColor = if (pri == TaskPriority.URGENT) Color(0xFFEF4444) else primaryColor
                         val pillBg by animateColorAsState(
                             targetValue = if (isSelected) activeColor else MaterialTheme.colorScheme.surfaceVariant,
                             label = "pri_bg_${pri.name}"
@@ -305,6 +439,59 @@ fun AddEditTaskDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Recurrence Selector (Tekrarlayan Görevler)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Repeat,
+                        contentDescription = null,
+                        tint = primaryColor,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Tekrarlama",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    RecurrenceRule.entries.forEach { rule ->
+                        val isSelected = selectedRecurrence == rule.name
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(
+                                    if (isSelected) primaryColor
+                                    else MaterialTheme.colorScheme.surfaceVariant
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = if (isSelected) primaryColor else MaterialTheme.colorScheme.outline.copy(alpha = 0.65f),
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .clickable { selectedRecurrence = rule.name }
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                                .testTag("recurrence_${rule.name.lowercase()}"),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = rule.displayName,
+                                fontSize = 12.sp,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 // Date & Time Pickers Row
                 Text(
                     text = "Tarih ve Saat",
@@ -322,7 +509,6 @@ fun AddEditTaskDialog(
                         sdf.format(Date(dueDateMillis))
                     }
 
-                    // Date Picker Pill Button
                     Row(
                         modifier = Modifier
                             .weight(1f)
@@ -342,7 +528,7 @@ fun AddEditTaskDialog(
                         Icon(
                             imageVector = Icons.Default.CalendarMonth,
                             contentDescription = null,
-                            tint = CoralToday,
+                            tint = primaryColor,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
@@ -354,18 +540,17 @@ fun AddEditTaskDialog(
                         )
                     }
 
-                    // Time Picker Pill Button
                     Row(
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(12.dp))
                             .background(
-                                if (hasSpecificTime) CoralToday.copy(alpha = 0.14f)
+                                if (hasSpecificTime) primaryColor.copy(alpha = 0.14f)
                                 else MaterialTheme.colorScheme.surfaceVariant
                             )
                             .border(
                                 width = 1.dp,
-                                color = if (hasSpecificTime) CoralToday else MaterialTheme.colorScheme.outline.copy(alpha = 0.65f),
+                                color = if (hasSpecificTime) primaryColor else MaterialTheme.colorScheme.outline.copy(alpha = 0.65f),
                                 shape = RoundedCornerShape(12.dp)
                             )
                             .clickable {
@@ -380,7 +565,7 @@ fun AddEditTaskDialog(
                         Icon(
                             imageVector = Icons.Default.AccessTime,
                             contentDescription = null,
-                            tint = CoralToday,
+                            tint = primaryColor,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
@@ -389,7 +574,7 @@ fun AddEditTaskDialog(
                             else "Saat Seç",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (hasSpecificTime) CoralToday else MaterialTheme.colorScheme.onSurface
+                            color = if (hasSpecificTime) primaryColor else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -420,7 +605,7 @@ fun AddEditTaskDialog(
                                 .size(34.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (hasReminder) CoralToday.copy(alpha = 0.16f)
+                                    if (hasReminder) primaryColor.copy(alpha = 0.16f)
                                     else MaterialTheme.colorScheme.surface
                                 ),
                             contentAlignment = Alignment.Center
@@ -428,7 +613,7 @@ fun AddEditTaskDialog(
                             Icon(
                                 imageVector = Icons.Default.NotificationsActive,
                                 contentDescription = null,
-                                tint = if (hasReminder) CoralToday else MaterialTheme.colorScheme.onSurfaceVariant,
+                                tint = if (hasReminder) primaryColor else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -457,8 +642,8 @@ fun AddEditTaskDialog(
                         },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
-                            checkedTrackColor = CoralToday,
-                            checkedBorderColor = CoralToday,
+                            checkedTrackColor = primaryColor,
+                            checkedBorderColor = primaryColor,
                             uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             uncheckedTrackColor = MaterialTheme.colorScheme.surface,
                             uncheckedBorderColor = MaterialTheme.colorScheme.outline
@@ -467,7 +652,6 @@ fun AddEditTaskDialog(
                     )
                 }
 
-                // If reminder is on, choose reminder offset
                 if (hasReminder) {
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
@@ -494,12 +678,12 @@ fun AddEditTaskDialog(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
                                     .background(
-                                        if (isSelectedOffset) CoralToday
+                                        if (isSelectedOffset) primaryColor
                                         else MaterialTheme.colorScheme.surfaceVariant
                                     )
                                     .border(
                                         width = 1.dp,
-                                        color = if (isSelectedOffset) CoralToday else MaterialTheme.colorScheme.outline.copy(alpha = 0.6f),
+                                        color = if (isSelectedOffset) primaryColor else MaterialTheme.colorScheme.outline.copy(alpha = 0.6f),
                                         shape = RoundedCornerShape(8.dp)
                                     )
                                     .clickable { reminderMinutesBefore = mins }
@@ -537,6 +721,13 @@ fun AddEditTaskDialog(
                             if (title.isBlank()) {
                                 titleError = true
                             } else {
+                                // Also include pending typed subtask if user forgot to tap +
+                                val pendingSub = newSubtaskTitle.trim()
+                                val finalSubtasks = if (pendingSub.isNotEmpty()) {
+                                    subtasks + SubtaskItem(title = pendingSub)
+                                } else {
+                                    subtasks
+                                }
                                 onSave(
                                     title,
                                     description,
@@ -546,14 +737,16 @@ fun AddEditTaskDialog(
                                     selectedCategory,
                                     selectedPriority,
                                     hasReminder,
-                                    reminderMinutesBefore
+                                    reminderMinutesBefore,
+                                    selectedRecurrence,
+                                    SubtaskCodec.encode(finalSubtasks)
                                 )
                             }
                         },
                         modifier = Modifier.testTag("save_task_button"),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = CoralToday,
+                            containerColor = primaryColor,
                             contentColor = Color.White
                         )
                     ) {
@@ -567,7 +760,6 @@ fun AddEditTaskDialog(
         }
     }
 
-    // Material Date Picker Dialog
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -579,7 +771,7 @@ fun AddEditTaskDialog(
                         }
                         showDatePicker = false
                     }
-                ) { Text("Seç", color = CoralToday, fontWeight = FontWeight.Bold) }
+                ) { Text("Seç", color = primaryColor, fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
@@ -590,15 +782,14 @@ fun AddEditTaskDialog(
             DatePicker(
                 state = datePickerState,
                 colors = DatePickerDefaults.colors(
-                    selectedDayContainerColor = CoralToday,
-                    todayDateBorderColor = CoralToday,
-                    todayContentColor = CoralToday
+                    selectedDayContainerColor = primaryColor,
+                    todayDateBorderColor = primaryColor,
+                    todayContentColor = primaryColor
                 )
             )
         }
     }
 
-    // Time Picker Dialog
     if (showTimePicker) {
         AlertDialog(
             onDismissRequest = { showTimePicker = false },
@@ -610,7 +801,7 @@ fun AddEditTaskDialog(
                         hasSpecificTime = true
                         showTimePicker = false
                     }
-                ) { Text("Tamam", color = CoralToday, fontWeight = FontWeight.Bold) }
+                ) { Text("Tamam", color = primaryColor, fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
                 TextButton(onClick = { showTimePicker = false }) {
@@ -627,9 +818,9 @@ fun AddEditTaskDialog(
                     TimePicker(
                         state = timePickerState,
                         colors = TimePickerDefaults.colors(
-                            selectorColor = CoralToday,
-                            timeSelectorSelectedContainerColor = CoralToday.copy(alpha = 0.18f),
-                            timeSelectorSelectedContentColor = CoralToday
+                            selectorColor = primaryColor,
+                            timeSelectorSelectedContainerColor = primaryColor.copy(alpha = 0.18f),
+                            timeSelectorSelectedContentColor = primaryColor
                         )
                     )
                 }

@@ -52,13 +52,12 @@ import java.util.Locale
 @Composable
 fun OverviewScreen(
     tasks: List<TaskEntity>,
-    lastSyncTime: String,
     onNavigateTab: (ActiveTab) -> Unit,
     onAddTask: () -> Unit,
     onToggleTask: (Long) -> Unit,
+    onToggleSubtask: (Long, String) -> Unit = { _, _ -> },
     onEditTask: (TaskEntity) -> Unit,
-    onDeleteTask: (Long) -> Unit,
-    onOpenSyncDialog: () -> Unit
+    onDeleteTask: (Long) -> Unit
 ) {
     val todayStart = remember { TaskRepository.getDayStartMillis(System.currentTimeMillis()) }
     val todayEnd = remember { TaskRepository.getDayEndMillis(System.currentTimeMillis()) }
@@ -257,6 +256,7 @@ fun OverviewScreen(
                 TaskItemCard(
                     task = task,
                     onToggleComplete = { onToggleTask(task.id) },
+                    onToggleSubtask = { subId -> onToggleSubtask(task.id, subId) },
                     onEdit = { onEditTask(task) },
                     onDelete = { onDeleteTask(task.id) }
                 )
@@ -272,6 +272,7 @@ fun OverviewScreen(
                 TaskItemCard(
                     task = task,
                     onToggleComplete = { onToggleTask(task.id) },
+                    onToggleSubtask = { subId -> onToggleSubtask(task.id, subId) },
                     onEdit = { onEditTask(task) },
                     onDelete = { onDeleteTask(task.id) }
                 )
@@ -287,6 +288,7 @@ fun OverviewScreen(
                 TaskItemCard(
                     task = task,
                     onToggleComplete = { onToggleTask(task.id) },
+                    onToggleSubtask = { subId -> onToggleSubtask(task.id, subId) },
                     onEdit = { onEditTask(task) },
                     onDelete = { onDeleteTask(task.id) }
                 )
@@ -302,6 +304,7 @@ fun OverviewScreen(
                 TaskItemCard(
                     task = task,
                     onToggleComplete = { onToggleTask(task.id) },
+                    onToggleSubtask = { subId -> onToggleSubtask(task.id, subId) },
                     onEdit = { onEditTask(task) },
                     onDelete = { onDeleteTask(task.id) }
                 )

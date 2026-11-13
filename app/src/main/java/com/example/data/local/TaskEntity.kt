@@ -25,6 +25,8 @@ data class TaskEntity(
     val hasReminder: Boolean = false,
     val reminderMinutesBefore: Int = 15, // 0, 5, 15, 30, 60
     val reminderScheduledTimeMillis: Long? = null,
+    val recurrenceRule: String = "NONE", // NONE, DAILY, WEEKLY, MONTHLY
+    val subtasksJson: String = "[]",
     val createdAtMillis: Long = System.currentTimeMillis(),
     val updatedAtMillis: Long = System.currentTimeMillis(),
     @ColumnInfo(name = "created_at")

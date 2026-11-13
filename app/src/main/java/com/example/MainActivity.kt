@@ -34,7 +34,7 @@ import com.example.model.ActiveTab
 import com.example.ui.components.TopNavigationBar
 import com.example.ui.dialogs.AddEditTaskDialog
 import com.example.ui.dialogs.CloudSyncDialog
-import com.example.ui.dialogs.ViewSwitcherBottomSheet
+import com.example.ui.dialogs.SettingsDialog
 import com.example.ui.screens.CalendarScreen
 import com.example.ui.screens.DayFlowScreen
 import com.example.ui.screens.OverviewScreen
@@ -51,6 +51,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val viewModel: PlanFlowViewModel = viewModel()
             val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+            val accentTheme by viewModel.accentTheme.collectAsStateWithLifecycle()
 
             // Request Notification permission on Android 13+
             val notificationPermissionLauncher = rememberLauncherForActivityResult(
@@ -69,7 +70,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            PlanFlowTheme(themeMode = themeMode) {
+            PlanFlowTheme(themeMode = themeMode, accentTheme = accentTheme) {
                 MainScreen(viewModel = viewModel)
             }
         }
@@ -80,6 +81,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(viewModel: PlanFlowViewModel) {
     val activeTab by viewModel.activeTab.collectAsStateWithLifecycle()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val accentTheme by viewModel.accentTheme.collectAsStateWithLifecycle()
     val allTasks by viewModel.allTasks.collectAsStateWithLifecycle()
     val filteredTasks by viewModel.filteredTasks.collectAsStateWithLifecycle()
     val selectedCalendarDateMillis by viewModel.selectedCalendarDateMillis.collectAsStateWithLifecycle()
@@ -128,14 +130,11 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
                 currentTab = activeTab,
                 pendingTaskCount = pendingCount,
                 dailyProgress = todayProgress,
-                themeMode = themeMode,
                 isSyncing = isSyncing,
                 hasUpdateAvailable = hasUpdateAvailable,
                 statusBarTopPadding = statusBarTopPadding,
                 onTabSelected = { viewModel.setActiveTab(it) },
-                onThemeToggle = { viewModel.toggleTheme() },
-                onCloudSyncClick = { viewModel.openCloudSyncDialog() },
-                onOpenMenu = { viewModel.openMenuSheet() }
+                onOpenSettings = { viewModel.openMenuSheet() }
             )
         }
     ) { innerPadding ->
@@ -156,9 +155,9 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
                             tasks = allTasks,
                             onToggleTask = { viewModel.toggleTaskCompletion(it) },
                             onEditTask = { viewModel.openEditTask(it) },
-                            onDeleteTask = { viewModel.deleteTask(it) },
-                            onAddTaskForDate = { dateMillis -> viewModel.openAddTask(dateMillis) },
-                            onOpenMenu = { viewModel.openMenuSheet() }
+                            onRescheduleOverdue = { viewModel.rescheduleOverdueTasksToToday() },
+                            onRescheduleSingleTask = { viewModel.rescheduleSingleTaskToToday(it) },
+                            onAddTaskForDate = { dateMillis -> viewModel.openAddTask(dateMillis) }
                         )
                     }
 
@@ -173,6 +172,7 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
                             onJumpToToday = { viewModel.jumpToToday() },
                             onAddTaskForDate = { dateMillis -> viewModel.openAddTask(dateMillis) },
                             onToggleTask = { viewModel.toggleTaskCompletion(it) },
+                            onToggleSubtask = { taskId, subId -> viewModel.toggleSubtask(taskId, subId) },
                             onEditTask = { viewModel.openEditTask(it) },
                             onDeleteTask = { viewModel.deleteTask(it) }
                         )
@@ -189,6 +189,8 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
                             onPrioritySelect = { viewModel.setPriorityFilter(it) },
                             onAddTask = { viewModel.openAddTask() },
                             onToggleTask = { viewModel.toggleTaskCompletion(it) },
+                            onToggleSubtask = { taskId, subId -> viewModel.toggleSubtask(taskId, subId) },
+                            onRescheduleOverdue = { viewModel.rescheduleOverdueTasksToToday() },
                             onEditTask = { viewModel.openEditTask(it) },
                             onDeleteTask = { viewModel.deleteTask(it) }
                         )
@@ -197,13 +199,12 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
                     ActiveTab.OVERVIEW -> {
                         OverviewScreen(
                             tasks = allTasks,
-                            lastSyncTime = lastSyncTime,
                             onNavigateTab = { viewModel.setActiveTab(it) },
                             onAddTask = { viewModel.openAddTask() },
                             onToggleTask = { viewModel.toggleTaskCompletion(it) },
+                            onToggleSubtask = { taskId, subId -> viewModel.toggleSubtask(taskId, subId) },
                             onEditTask = { viewModel.openEditTask(it) },
-                            onDeleteTask = { viewModel.deleteTask(it) },
-                            onOpenSyncDialog = { viewModel.openCloudSyncDialog() }
+                            onDeleteTask = { viewModel.deleteTask(it) }
                         )
                     }
                 }
@@ -217,7 +218,7 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
             initialTask = editingTask,
             defaultDateMillis = selectedCalendarDateMillis,
             onDismiss = { viewModel.dismissAddEditDialog() },
-            onSave = { title, desc, dueDate, hour, min, cat, pri, hasReminder, reminderMinutes ->
+            onSave = { title, desc, dueDate, hour, min, cat, pri, hasReminder, reminderMinutes, recurrenceRule, subtasksJson ->
                 viewModel.saveTask(
                     id = editingTask?.id ?: 0L,
                     title = title,
@@ -228,7 +229,9 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
                     category = cat,
                     priority = pri,
                     hasReminder = hasReminder,
-                    reminderMinutesBefore = reminderMinutes
+                    reminderMinutesBefore = reminderMinutes,
+                    recurrenceRule = recurrenceRule,
+                    subtasksJson = subtasksJson
                 )
             }
         )
@@ -277,18 +280,28 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
         )
     }
 
-    // View Switcher Menu Sheet (triggered by the top ≡ button)
+    // Separate Settings & Appearance Window Dialog
     if (showMenuSheet) {
-        ViewSwitcherBottomSheet(
-            currentTab = activeTab,
+        SettingsDialog(
             themeMode = themeMode,
+            accentTheme = accentTheme,
+            accountKey = accountKey,
+            lastSyncTime = lastSyncTime,
+            isSupabaseConfigured = isSupabaseConfigured,
+            isSyncing = isSyncing,
+            syncMessage = syncMessage,
             hasUpdateAvailable = hasUpdateAvailable,
             latestReleaseTag = latestReleaseInfo?.tagName,
             installedVersion = viewModel.installedVersionName,
-            onSelectTab = { viewModel.setActiveTab(it) },
-            onToggleTheme = { viewModel.toggleTheme() },
-            onOpenCloudSync = { viewModel.openCloudSyncDialog() },
+            completedTasksCount = allTasks.count { it.isCompleted },
+            onSelectThemeMode = { viewModel.setThemeMode(it) },
+            onSelectAccentTheme = { viewModel.setAccentTheme(it) },
+            onUpdateAccountKey = { viewModel.updateAccountKey(it) },
+            onSyncToCloud = { viewModel.syncToCloud() },
+            onRestoreFromCloud = { viewModel.restoreFromCloud() },
+            onOpenAdvancedCloudSync = { viewModel.openCloudSyncDialog() },
             onOpenGitHubUpdate = { viewModel.openGitHubUpdateDialog() },
+            onClearCompletedTasks = { viewModel.clearCompletedTasks() },
             onDismiss = { viewModel.dismissMenuSheet() }
         )
     }

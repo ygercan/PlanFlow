@@ -64,7 +64,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.data.repository.GitHubReleaseInfo
 import com.example.data.repository.GitHubReleaseManager
-import com.example.ui.theme.CoralToday
 import com.example.util.rememberHapticController
 
 @Composable
@@ -95,11 +94,11 @@ fun GitHubUpdateDialog(
     val hasNewerRelease = latestRelease?.isNewerThanInstalled == true
 
     val textFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = CoralToday,
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-        focusedLabelColor = CoralToday,
+        focusedLabelColor = MaterialTheme.colorScheme.primary,
         unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        cursorColor = CoralToday,
+        cursorColor = MaterialTheme.colorScheme.primary,
         focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
     )
@@ -143,7 +142,7 @@ fun GitHubUpdateDialog(
                                 .background(MaterialTheme.colorScheme.primaryContainer)
                                 .border(
                                     width = 1.dp,
-                                    color = CoralToday.copy(alpha = 0.45f),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
                                     shape = RoundedCornerShape(10.dp)
                                 ),
                             contentAlignment = Alignment.Center
@@ -151,7 +150,7 @@ fun GitHubUpdateDialog(
                             Icon(
                                 imageVector = Icons.Default.SystemUpdateAlt,
                                 contentDescription = null,
-                                tint = CoralToday,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -175,7 +174,7 @@ fun GitHubUpdateDialog(
 
                     // Status Pill
                     val badgeColor = when {
-                        hasNewerRelease -> CoralToday
+                        hasNewerRelease -> MaterialTheme.colorScheme.primary
                         latestRelease != null -> Color(0xFF10B981)
                         else -> Color(0xFFF59E0B)
                     }
@@ -281,7 +280,7 @@ fun GitHubUpdateDialog(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(CoralToday)
+                            .background(MaterialTheme.colorScheme.primary)
                             .clickable {
                                 haptics.performNavigationTap()
                                 onSaveRepoConfig(ownerInput, repoInput, tokenInput)
@@ -345,7 +344,7 @@ fun GitHubUpdateDialog(
                             .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f))
                             .border(
                                 width = 1.dp,
-                                color = CoralToday.copy(alpha = 0.45f),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
                                 shape = RoundedCornerShape(10.dp)
                             )
                             .padding(10.dp)
@@ -368,7 +367,7 @@ fun GitHubUpdateDialog(
                             .background(MaterialTheme.colorScheme.surfaceVariant)
                             .border(
                                 width = 1.dp,
-                                color = if (hasNewerRelease) CoralToday else MaterialTheme.colorScheme.outline,
+                                color = if (hasNewerRelease) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                 shape = RoundedCornerShape(14.dp)
                             )
                             .padding(14.dp)
@@ -381,7 +380,7 @@ fun GitHubUpdateDialog(
                             Text(
                                 text = "${latestRelease.title} (${latestRelease.tagName})",
                                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                                color = if (hasNewerRelease) CoralToday else MaterialTheme.colorScheme.onSurface
+                                color = if (hasNewerRelease) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "${latestRelease.publishedAt} · ${latestRelease.formattedApkSize}",
@@ -423,7 +422,7 @@ fun GitHubUpdateDialog(
                                 .testTag("atomic_update_download_button"),
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = CoralToday,
+                                containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = Color.White
                             )
                         ) {
@@ -467,7 +466,7 @@ fun GitHubUpdateDialog(
                         .testTag("check_github_update_button"),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (hasNewerRelease) MaterialTheme.colorScheme.onSurface else CoralToday,
+                        containerColor = if (hasNewerRelease) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary,
                         contentColor = if (hasNewerRelease) MaterialTheme.colorScheme.surface else Color.White
                     )
                 ) {
@@ -513,7 +512,7 @@ fun GitHubUpdateDialog(
                         Icon(
                             imageVector = Icons.Default.Storage,
                             contentDescription = null,
-                            tint = CoralToday,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(15.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
@@ -547,7 +546,7 @@ fun GitHubUpdateDialog(
                         Icon(
                             imageVector = Icons.Default.ContentCopy,
                             contentDescription = null,
-                            tint = CoralToday,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(15.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))

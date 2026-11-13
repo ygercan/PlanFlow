@@ -56,8 +56,34 @@ interface TaskDao {
     @Query("DELETE FROM tasks WHERE id = :taskId")
     suspend fun deleteTaskById(taskId: Long)
 
+    @Query("DELETE FROM tasks WHERE isCompleted = 1")
+    suspend fun deleteCompletedTasks(): Int
+
     @Query("DELETE FROM tasks")
     suspend fun clearAllTasks()
+
+    /**
+     * Atomically updates rescheduled overdue tasks in SQLite.
+     */
+    @Transaction
+    suspend fun rescheduleTasksAtomically(tasks: List<TaskEntity>): Int {
+        if (tasks.isNotEmpty()) {
+            upsertTasks(tasks)
+        }
+        return tasks.size
+    }
+
+    /**
+     * Atomically marks a recurring task completed and inserts its next scheduled occurrence.
+     */
+    @Transaction
+    suspend fun completeRecurringTaskAtomically(
+        completedTask: TaskEntity,
+        nextOccurrence: TaskEntity
+    ): Long {
+        updateTask(completedTask)
+        return insertTask(nextOccurrence)
+    }
 
     /**
      * Atomically applies resolved conflict items into SQLite and returns the updated total count.

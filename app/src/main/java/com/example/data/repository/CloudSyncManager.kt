@@ -49,10 +49,15 @@ class CloudSyncManager(private val context: Context) {
                 completed_at_millis BIGINT,
                 has_reminder BOOLEAN DEFAULT FALSE,
                 reminder_minutes_before INT DEFAULT 15,
+                recurrence_rule TEXT DEFAULT 'NONE',
+                subtasks_json TEXT DEFAULT '[]',
                 created_at_millis BIGINT DEFAULT 0,
                 updated_at_millis BIGINT NOT NULL,
                 PRIMARY KEY (account_key, id)
             );
+
+            ALTER TABLE public.planflow_tasks ADD COLUMN IF NOT EXISTS recurrence_rule TEXT DEFAULT 'NONE';
+            ALTER TABLE public.planflow_tasks ADD COLUMN IF NOT EXISTS subtasks_json TEXT DEFAULT '[]';
 
             ALTER TABLE public.planflow_tasks ENABLE ROW LEVEL SECURITY;
 
@@ -133,7 +138,7 @@ class CloudSyncManager(private val context: Context) {
 
         val accountKey = getAccountKey()
         val payloadArray = JSONArray().apply {
-            put(taskToSupabaseJson(task, accountKey))
+            put(taskToSupabaseJson(task, accountKey, includeExtendedFields = true))
         }
 
         val url = "${getBaseRestUrl()}?on_conflict=account_key,id"
@@ -152,6 +157,24 @@ class CloudSyncManager(private val context: Context) {
                     SyncResult(true, "Anlık Supabase yedeği güncellendi.")
                 } else {
                     val errBody = response.body?.string().orEmpty()
+                    if (response.code == 400 && (errBody.contains("recurrence_rule") || errBody.contains("subtasks_json"))) {
+                        val fallbackPayload = JSONArray().apply {
+                            put(taskToSupabaseJson(task, accountKey, includeExtendedFields = false))
+                        }
+                        val fallbackReq = Request.Builder()
+                            .url(url)
+                            .addSupabaseHeaders()
+                            .addHeader("Content-Type", "application/json")
+                            .addHeader("Prefer", "resolution=merge-duplicates,return=minimal")
+                            .post(fallbackPayload.toString().toRequestBody(jsonMediaType))
+                            .build()
+                        httpClient.newCall(fallbackReq).execute().use { fbResp ->
+                            if (fbResp.isSuccessful) {
+                                updateLastSyncTime()
+                                return@withContext SyncResult(true, "Anlık Supabase yedeği güncellendi.")
+                            }
+                        }
+                    }
                     SyncResult(false, "Supabase hatası (${response.code}): $errBody")
                 }
             }
@@ -214,7 +237,7 @@ class CloudSyncManager(private val context: Context) {
         val accountKey = getAccountKey()
         val payloadArray = JSONArray()
         for (task in tasks) {
-            payloadArray.put(taskToSupabaseJson(task, accountKey))
+            payloadArray.put(taskToSupabaseJson(task, accountKey, includeExtendedFields = true))
         }
 
         val url = "${getBaseRestUrl()}?on_conflict=account_key,id"
@@ -236,6 +259,28 @@ class CloudSyncManager(private val context: Context) {
                     )
                 } else {
                     val errBody = response.body?.string().orEmpty()
+                    if (response.code == 400 && (errBody.contains("recurrence_rule") || errBody.contains("subtasks_json"))) {
+                        val fallbackArray = JSONArray()
+                        for (task in tasks) {
+                            fallbackArray.put(taskToSupabaseJson(task, accountKey, includeExtendedFields = false))
+                        }
+                        val fallbackReq = Request.Builder()
+                            .url(url)
+                            .addSupabaseHeaders()
+                            .addHeader("Content-Type", "application/json")
+                            .addHeader("Prefer", "resolution=merge-duplicates,return=minimal")
+                            .post(fallbackArray.toString().toRequestBody(jsonMediaType))
+                            .build()
+                        httpClient.newCall(fallbackReq).execute().use { fbResp ->
+                            if (fbResp.isSuccessful) {
+                                updateLastSyncTime()
+                                return@withContext SyncResult(
+                                    true,
+                                    "${tasks.size} görev Supabase ($accountKey) hesabına anlık yedeklendi."
+                                )
+                            }
+                        }
+                    }
                     SyncResult(
                         false,
                         "Supabase yedekleme hatası (${response.code}): ${errBody.take(120)}"
@@ -310,7 +355,11 @@ class CloudSyncManager(private val context: Context) {
         }
     }
 
-    private fun taskToSupabaseJson(task: TaskEntity, accountKey: String): JSONObject {
+    private fun taskToSupabaseJson(
+        task: TaskEntity,
+        accountKey: String,
+        includeExtendedFields: Boolean = true
+    ): JSONObject {
         val effectiveUpdated = task.effectiveUpdatedAtMillis
         return JSONObject().apply {
             put("account_key", accountKey)
@@ -326,6 +375,10 @@ class CloudSyncManager(private val context: Context) {
             put("completed_at_millis", task.completedAtMillis ?: JSONObject.NULL)
             put("has_reminder", task.hasReminder)
             put("reminder_minutes_before", task.reminderMinutesBefore)
+            if (includeExtendedFields) {
+                put("recurrence_rule", task.recurrenceRule)
+                put("subtasks_json", task.subtasksJson)
+            }
             put("created_at_millis", task.createdAtMillis)
             put("updated_at_millis", effectiveUpdated)
         }
@@ -383,6 +436,14 @@ class CloudSyncManager(private val context: Context) {
                             "reminder_minutes_before",
                             obj.optInt("reminderMinutesBefore", 15)
                         ),
+                        recurrenceRule = obj.optString(
+                            "recurrence_rule",
+                            obj.optString("recurrenceRule", "NONE")
+                        ).ifBlank { "NONE" },
+                        subtasksJson = obj.optString(
+                            "subtasks_json",
+                            obj.optString("subtasksJson", "[]")
+                        ).ifBlank { "[]" },
                         createdAtMillis = createdMillis,
                         updatedAtMillis = updatedMillis,
                         createdAt = Date(createdMillis),
