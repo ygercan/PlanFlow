@@ -31,6 +31,11 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SecurityUpdateGood
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.SystemUpdateAlt
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -67,12 +72,13 @@ fun GitHubUpdateDialog(
     installedVersion: String,
     githubOwner: String,
     githubRepo: String,
+    githubToken: String = "",
     lastCheckTime: String,
     isCheckingUpdate: Boolean,
     updateStatusMessage: String?,
     latestRelease: GitHubReleaseInfo?,
     onDismiss: () -> Unit,
-    onSaveRepoConfig: (owner: String, repo: String) -> Unit,
+    onSaveRepoConfig: (owner: String, repo: String, token: String?) -> Unit,
     onCheckForUpdates: () -> Unit,
     onExecuteAtomicCheckpointAndDownload: (targetUrl: String, onReadyToOpenUrl: (String) -> Unit) -> Unit,
     onRunAtomicDbCheckpointOnly: () -> Unit
@@ -82,6 +88,8 @@ fun GitHubUpdateDialog(
 
     var ownerInput by remember(githubOwner) { mutableStateOf(githubOwner) }
     var repoInput by remember(githubRepo) { mutableStateOf(githubRepo) }
+    var tokenInput by remember(githubToken) { mutableStateOf(githubToken) }
+    var showToken by remember { mutableStateOf(false) }
 
     val isRepoConfigured = ownerInput.isNotBlank() && repoInput.isNotBlank()
     val hasNewerRelease = latestRelease?.isNewerThanInstalled == true
@@ -276,7 +284,7 @@ fun GitHubUpdateDialog(
                             .background(CoralToday)
                             .clickable {
                                 haptics.performNavigationTap()
-                                onSaveRepoConfig(ownerInput, repoInput)
+                                onSaveRepoConfig(ownerInput, repoInput, tokenInput)
                                 Toast.makeText(
                                     context,
                                     "GitHub depo bilgisi kaydedildi ve denetleniyor",
@@ -294,6 +302,31 @@ fun GitHubUpdateDialog(
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = tokenInput,
+                    onValueChange = { tokenInput = it },
+                    label = { Text("GitHub Token (Yalnızca Private/Gizli Repo için)", fontSize = 11.sp) },
+                    placeholder = { Text("Public repoda boş bırakın (github_pat_...)", fontSize = 11.sp) },
+                    singleLine = true,
+                    visualTransformation = if (showToken) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { showToken = !showToken }) {
+                            Icon(
+                                imageVector = if (showToken) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = if (showToken) "Tokeni gizle" else "Tokeni göster",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("github_token_input"),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = textFieldColors
+                )
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -419,8 +452,11 @@ fun GitHubUpdateDialog(
                 Button(
                     onClick = {
                         haptics.performNavigationTap()
-                        if (ownerInput.trim() != githubOwner || repoInput.trim() != githubRepo) {
-                            onSaveRepoConfig(ownerInput, repoInput)
+                        if (ownerInput.trim() != githubOwner ||
+                            repoInput.trim() != githubRepo ||
+                            tokenInput.trim() != githubToken
+                        ) {
+                            onSaveRepoConfig(ownerInput, repoInput, tokenInput)
                         } else {
                             onCheckForUpdates()
                         }

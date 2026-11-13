@@ -78,13 +78,20 @@ class GitHubReleaseManager(context: Context) {
         return if (fromBuildConfig == "your-github-repo") "" else fromBuildConfig
     }
 
-    fun setGitHubRepository(owner: String, repo: String) {
+    fun getGitHubToken(): String {
+        return prefs.getString("github_token", null)?.trim().orEmpty()
+    }
+
+    fun setGitHubRepository(owner: String, repo: String, token: String? = null) {
         val cleanOwner = owner.trim().removePrefix("https://github.com/").split("/").firstOrNull()?.trim().orEmpty()
         val cleanRepo = repo.trim().removeSuffix(".git").split("/").lastOrNull()?.trim().orEmpty()
-        prefs.edit()
+        val editor = prefs.edit()
             .putString("github_owner", cleanOwner)
             .putString("github_repo", cleanRepo)
-            .apply()
+        if (token != null) {
+            editor.putString("github_token", token.trim())
+        }
+        editor.apply()
     }
 
     fun isRepositoryConfigured(): Boolean {
@@ -105,9 +112,22 @@ class GitHubReleaseManager(context: Context) {
         }
     }
 
+    private fun buildGitHubRequest(url: String, token: String): Request {
+        val builder = Request.Builder()
+            .url(url)
+            .addHeader("Accept", "application/vnd.github+json")
+            .addHeader("User-Agent", "PlanFlow-Android-Updater")
+            .get()
+        if (token.isNotBlank()) {
+            builder.addHeader("Authorization", "Bearer $token")
+        }
+        return builder.build()
+    }
+
     suspend fun checkLatestRelease(): GitHubUpdateCheckResult = withContext(Dispatchers.IO) {
         val owner = getGitHubOwner()
         val repo = getGitHubRepo()
+        val token = getGitHubToken()
         val installedVer = getInstalledVersionName()
 
         if (owner.isBlank() || repo.isBlank()) {
@@ -119,26 +139,13 @@ class GitHubReleaseManager(context: Context) {
 
         try {
             val latestUrl = "https://api.github.com/repos/$owner/$repo/releases/latest"
-            val request = Request.Builder()
-                .url(latestUrl)
-                .addHeader("Accept", "application/vnd.github+json")
-                .addHeader("User-Agent", "PlanFlow-Android-Updater")
-                .get()
-                .build()
-
-            val response = httpClient.newCall(request).execute()
+            val response = httpClient.newCall(buildGitHubRequest(latestUrl, token)).execute()
             val bodyStr = response.body?.string().orEmpty()
 
             if (response.code == 404) {
-                // Fallback: Check /releases list in case only pre-release exists
+                // Fallback 1: Check /releases list in case only pre-release exists
                 val listUrl = "https://api.github.com/repos/$owner/$repo/releases?per_page=1"
-                val listReq = Request.Builder()
-                    .url(listUrl)
-                    .addHeader("Accept", "application/vnd.github+json")
-                    .addHeader("User-Agent", "PlanFlow-Android-Updater")
-                    .get()
-                    .build()
-                val listResp = httpClient.newCall(listReq).execute()
+                val listResp = httpClient.newCall(buildGitHubRequest(listUrl, token)).execute()
                 val listBody = listResp.body?.string().orEmpty()
                 if (listResp.isSuccessful) {
                     val arr = JSONArray(listBody)
@@ -147,14 +154,43 @@ class GitHubReleaseManager(context: Context) {
                         saveLastCheckTimestamp()
                         return@withContext buildResultFromRelease(parsed)
                     }
+                    saveLastCheckTimestamp()
+                    return@withContext GitHubUpdateCheckResult(
+                        success = false,
+                        message = "$owner/$repo deposunda henüz yayınlanmış bir GitHub Release (APK) bulunamadı. Kodu GitHub'a push ettiğinizde GitHub Actions otomatik oluşturacaktır."
+                    )
+                }
+
+                // Fallback 2: Check whether the repository itself is Private or inaccessible (GitHub returns 404 for private repos without token)
+                val repoMetaUrl = "https://api.github.com/repos/$owner/$repo"
+                val repoResp = httpClient.newCall(buildGitHubRequest(repoMetaUrl, token)).execute()
+                saveLastCheckTimestamp()
+
+                val diagnosticMessage = if (repoResp.code == 404 || repoResp.code == 401 || repoResp.code == 403) {
+                    if (token.isBlank()) {
+                        "$owner/$repo deposuna erişilemedi (HTTP ${repoResp.code}). Deponuz 'Private' (Gizli) ise GitHub API sürüm listesini gizler: aşağıya GitHub Token (PAT) ekleyin veya depoyu Public yapın."
+                    } else {
+                        "$owner/$repo deposuna girilen Token ile erişilemedi (HTTP ${repoResp.code}). Token yetkisini (Contents: Read) ve depo adını kontrol edin."
+                    }
+                } else {
+                    "$owner/$repo deposunda henüz yayınlanmış bir GitHub Release (APK) bulunamadı."
                 }
                 return@withContext GitHubUpdateCheckResult(
                     success = false,
-                    message = "$owner/$repo deposunda henüz yayınlanmış bir GitHub Release (APK) bulunamadı. Kodu GitHub'a push ettiğinizde GitHub Actions otomatik oluşturacaktır."
+                    message = diagnosticMessage
+                )
+            }
+
+            if (response.code == 401 || response.code == 403) {
+                saveLastCheckTimestamp()
+                return@withContext GitHubUpdateCheckResult(
+                    success = false,
+                    message = "GitHub erişim/limit hatası (HTTP ${response.code}). Gizli depo kullanıyorsanız geçerli bir GitHub Token (PAT) girin."
                 )
             }
 
             if (!response.isSuccessful) {
+                saveLastCheckTimestamp()
                 return@withContext GitHubUpdateCheckResult(
                     success = false,
                     message = "GitHub API yanıt hatası (HTTP ${response.code}). Depo adını kontrol edin."

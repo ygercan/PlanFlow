@@ -103,6 +103,7 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
     val isCheckingUpdate by viewModel.isCheckingUpdate.collectAsStateWithLifecycle()
     val githubOwner by viewModel.githubOwner.collectAsStateWithLifecycle()
     val githubRepo by viewModel.githubRepo.collectAsStateWithLifecycle()
+    val githubToken by viewModel.githubToken.collectAsStateWithLifecycle()
     val lastUpdateCheckTime by viewModel.lastUpdateCheckTime.collectAsStateWithLifecycle()
     val updateStatusMessage by viewModel.updateStatusMessage.collectAsStateWithLifecycle()
     val latestReleaseInfo by viewModel.latestReleaseInfo.collectAsStateWithLifecycle()
@@ -261,12 +262,13 @@ fun MainScreen(viewModel: PlanFlowViewModel) {
             installedVersion = viewModel.installedVersionName,
             githubOwner = githubOwner,
             githubRepo = githubRepo,
+            githubToken = githubToken,
             lastCheckTime = lastUpdateCheckTime,
             isCheckingUpdate = isCheckingUpdate,
             updateStatusMessage = updateStatusMessage,
             latestRelease = latestReleaseInfo,
             onDismiss = { viewModel.dismissGitHubUpdateDialog() },
-            onSaveRepoConfig = { owner, repo -> viewModel.saveGitHubRepoConfig(owner, repo) },
+            onSaveRepoConfig = { owner, repo, token -> viewModel.saveGitHubRepoConfig(owner, repo, token) },
             onCheckForUpdates = { viewModel.checkForGitHubUpdates(silentOnNoUpdate = false) },
             onExecuteAtomicCheckpointAndDownload = { targetUrl, onReady ->
                 viewModel.executeAtomicCheckpointAndDownload(targetUrl, onReady)

@@ -84,6 +84,9 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
     private val _githubRepo = MutableStateFlow(repository.gitHubReleaseManager.getGitHubRepo())
     val githubRepo: StateFlow<String> = _githubRepo.asStateFlow()
 
+    private val _githubToken = MutableStateFlow(repository.gitHubReleaseManager.getGitHubToken())
+    val githubToken: StateFlow<String> = _githubToken.asStateFlow()
+
     private val _lastUpdateCheckTime = MutableStateFlow(repository.gitHubReleaseManager.getLastCheckTimeString())
     val lastUpdateCheckTime: StateFlow<String> = _lastUpdateCheckTime.asStateFlow()
 
@@ -380,6 +383,7 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
     fun openGitHubUpdateDialog() {
         _githubOwner.value = repository.gitHubReleaseManager.getGitHubOwner()
         _githubRepo.value = repository.gitHubReleaseManager.getGitHubRepo()
+        _githubToken.value = repository.gitHubReleaseManager.getGitHubToken()
         _lastUpdateCheckTime.value = repository.gitHubReleaseManager.getLastCheckTimeString()
         _showGitHubUpdateDialog.value = true
     }
@@ -388,10 +392,11 @@ class PlanFlowViewModel(application: Application) : AndroidViewModel(application
         _showGitHubUpdateDialog.value = false
     }
 
-    fun saveGitHubRepoConfig(owner: String, repo: String) {
-        repository.gitHubReleaseManager.setGitHubRepository(owner, repo)
+    fun saveGitHubRepoConfig(owner: String, repo: String, token: String? = null) {
+        repository.gitHubReleaseManager.setGitHubRepository(owner, repo, token)
         _githubOwner.value = repository.gitHubReleaseManager.getGitHubOwner()
         _githubRepo.value = repository.gitHubReleaseManager.getGitHubRepo()
+        _githubToken.value = repository.gitHubReleaseManager.getGitHubToken()
         checkForGitHubUpdates(silentOnNoUpdate = false)
     }
 
