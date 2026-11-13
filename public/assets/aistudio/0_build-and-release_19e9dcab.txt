@@ -1,0 +1,584 @@
+﻿2026-11-13T10:58:45.1582112Z Current runner version: '2.338.2'
+2026-11-13T10:58:45.1612667Z ##[group]Runner Image Provisioner
+2026-11-13T10:58:45.1613924Z Hosted Compute Agent
+2026-11-13T10:58:45.1614741Z Version: 20261028.624
+2026-11-13T10:58:45.1615481Z Commit: 54898b74c23fde5556c9b3c3a2290865feef0dfe
+2026-11-13T10:58:45.1616414Z Build Date: 2026-10-28T21:51:42Z
+2026-11-13T10:58:45.1617248Z Worker ID: {7c14eacb-e796-4925-ac8e-b7e5716eaf1a}
+2026-11-13T10:58:45.1618134Z Region: eastus2
+2026-11-13T10:58:45.1618912Z Cloud: Azure
+2026-11-13T10:58:45.1619829Z ##[endgroup]
+2026-11-13T10:58:45.1622207Z ##[group]Operating System
+2026-11-13T10:58:45.1623015Z Ubuntu
+2026-11-13T10:58:45.1623621Z 26.04.1
+2026-11-13T10:58:45.1624299Z LTS
+2026-11-13T10:58:45.1624898Z ##[endgroup]
+2026-11-13T10:58:45.1625531Z ##[group]Runner Image
+2026-11-13T10:58:45.1626334Z Image: ubuntu-26.04
+2026-11-13T10:58:45.1626953Z Version: 20261101.186.1
+2026-11-13T10:58:45.1628670Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261101.186/images/ubuntu/Ubuntu2604-Readme.md
+2026-11-13T10:58:45.1630849Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261101.186
+2026-11-13T10:58:45.1631973Z ##[endgroup]
+2026-11-13T10:58:45.1633350Z ##[group]GITHUB_TOKEN Permissions
+2026-11-13T10:58:45.1635594Z Contents: write
+2026-11-13T10:58:45.1636212Z Metadata: read
+2026-11-13T10:58:45.1637001Z ##[endgroup]
+2026-11-13T10:58:45.1639452Z Secret source: Actions
+2026-11-13T10:58:45.1640948Z Cache mode: write
+2026-11-13T10:58:45.1641830Z Prepare workflow directory
+2026-11-13T10:58:45.2029838Z Prepare all required actions
+2026-11-13T10:58:45.2088677Z Getting action download info
+2026-11-13T10:58:45.4393042Z Download action repository 'actions/checkout@v5' (SHA:fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09)
+2026-11-13T10:58:45.5792713Z Download action repository 'actions/setup-java@v5' (SHA:b6effb05e454b25005698d916606bdc6ffcbf961)
+2026-11-13T10:58:45.9173008Z Download action repository 'gradle/actions@v5' (SHA:0723195856401067f7a2779048b490ace7a47d7c)
+2026-11-13T10:58:47.5601788Z Download action repository 'softprops/action-gh-release@v2' (SHA:3bb12739c298aeb8a4eeaf626c5b8d85266b0e65)
+2026-11-13T10:58:47.7822510Z Complete job name: build-and-release
+2026-11-13T10:58:47.8671579Z ##[group]Run actions/checkout@v5
+2026-11-13T10:58:47.8672102Z with:
+2026-11-13T10:58:47.8672322Z   fetch-depth: 0
+2026-11-13T10:58:47.8672556Z   repository: ygercan/PlanFlow
+2026-11-13T10:58:47.8674736Z   token: ***
+2026-11-13T10:58:47.8674957Z   ssh-strict: true
+2026-11-13T10:58:47.8675179Z   ssh-user: git
+2026-11-13T10:58:47.8675400Z   persist-credentials: true
+2026-11-13T10:58:47.8675642Z   clean: true
+2026-11-13T10:58:47.8675865Z   sparse-checkout-cone-mode: true
+2026-11-13T10:58:47.8676127Z   fetch-tags: false
+2026-11-13T10:58:47.8676352Z   show-progress: true
+2026-11-13T10:58:47.8676585Z   lfs: false
+2026-11-13T10:58:47.8676799Z   submodules: false
+2026-11-13T10:58:47.8677020Z   set-safe-directory: true
+2026-11-13T10:58:47.8677269Z   allow-unsafe-pr-checkout: false
+2026-11-13T10:58:47.8677680Z ##[endgroup]
+2026-11-13T10:58:48.1691810Z Syncing repository: ygercan/PlanFlow
+2026-11-13T10:58:48.1694060Z ##[group]Getting Git version info
+2026-11-13T10:58:48.1694875Z Working directory is '/home/runner/work/PlanFlow/PlanFlow'
+2026-11-13T10:58:48.1695690Z [command]/usr/bin/git version
+2026-11-13T10:58:48.1829732Z git version 2.56.0
+2026-11-13T10:58:48.2134214Z ##[endgroup]
+2026-11-13T10:58:48.2151362Z Temporarily overriding HOME='/home/runner/work/_temp/edcc4211-1db0-4239-9d12-6d6accb0054f' before making global git config changes
+2026-11-13T10:58:48.2155107Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-13T10:58:48.2156633Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/PlanFlow/PlanFlow
+2026-11-13T10:58:48.2157859Z Deleting the contents of '/home/runner/work/PlanFlow/PlanFlow'
+2026-11-13T10:58:48.2159360Z ##[group]Initializing the repository
+2026-11-13T10:58:48.2160001Z [command]/usr/bin/git init /home/runner/work/PlanFlow/PlanFlow
+2026-11-13T10:58:48.2324806Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-13T10:58:48.2325767Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-13T10:58:48.2326464Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-13T10:58:48.2327038Z hint: call:
+2026-11-13T10:58:48.2327327Z hint:
+2026-11-13T10:58:48.2327744Z hint: 	git config --global init.defaultBranch <name>
+2026-11-13T10:58:48.2328185Z hint:
+2026-11-13T10:58:48.2328607Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-13T10:58:48.2329280Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-13T10:58:48.2329995Z hint:
+2026-11-13T10:58:48.2330308Z hint: 	git branch -m <name>
+2026-11-13T10:58:48.2330651Z hint:
+2026-11-13T10:58:48.2331107Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-13T10:58:48.2331833Z Initialized empty Git repository in /home/runner/work/PlanFlow/PlanFlow/.git/
+2026-11-13T10:58:48.2333337Z [command]/usr/bin/git remote add origin https://github.com/ygercan/PlanFlow
+2026-11-13T10:58:48.2376015Z ##[endgroup]
+2026-11-13T10:58:48.2376911Z ##[group]Disabling automatic garbage collection
+2026-11-13T10:58:48.2379998Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-13T10:58:48.2750796Z ##[endgroup]
+2026-11-13T10:58:48.2751575Z ##[group]Setting up auth
+2026-11-13T10:58:48.2756546Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-13T10:58:48.2772889Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-13T10:58:48.3193494Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-13T10:58:48.3227949Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-13T10:58:48.3495941Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-13T10:58:48.3533736Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-13T10:58:48.3808265Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-13T10:58:48.3845090Z ##[endgroup]
+2026-11-13T10:58:48.3846157Z ##[group]Fetching the repository
+2026-11-13T10:58:48.3854055Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+2026-11-13T10:58:48.8417632Z From https://github.com/ygercan/PlanFlow
+2026-11-13T10:58:48.8419882Z  * [new branch]      main       -> origin/main
+2026-11-13T10:58:48.8422472Z [command]/usr/bin/git branch --list --remote origin/main
+2026-11-13T10:58:48.8423117Z   origin/main
+2026-11-13T10:58:48.8424366Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+2026-11-13T10:58:48.8425032Z 92cbe5f633131ea79bd21bd32e7ab19ea81d8ae6
+2026-11-13T10:58:48.8426691Z ##[endgroup]
+2026-11-13T10:58:48.8427339Z ##[group]Determining the checkout info
+2026-11-13T10:58:48.8427980Z ##[endgroup]
+2026-11-13T10:58:48.8428459Z [command]/usr/bin/git sparse-checkout disable
+2026-11-13T10:58:48.9638677Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-13T10:58:49.0231632Z ##[group]Checking out the ref
+2026-11-13T10:58:49.0235294Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-11-13T10:58:49.1451886Z Switched to a new branch 'main'
+2026-11-13T10:58:49.1473003Z branch 'main' set up to track 'origin/main'.
+2026-11-13T10:58:49.1524752Z ##[endgroup]
+2026-11-13T10:58:49.1570160Z [command]/usr/bin/git log -1 --format=%H
+2026-11-13T10:58:49.1597182Z 92cbe5f633131ea79bd21bd32e7ab19ea81d8ae6
+2026-11-13T10:58:49.2683438Z ##[group]Run actions/setup-java@v5
+2026-11-13T10:58:49.2683708Z with:
+2026-11-13T10:58:49.2683881Z   distribution: temurin
+2026-11-13T10:58:49.2684070Z   java-version: 21
+2026-11-13T10:58:49.2684246Z   java-package: jdk
+2026-11-13T10:58:49.2684422Z   check-latest: false
+2026-11-13T10:58:49.2684601Z   set-default: true
+2026-11-13T10:58:49.2684786Z   verify-signature: false
+2026-11-13T10:58:49.2684982Z   server-id: github
+2026-11-13T10:58:49.2685175Z   server-username: GITHUB_ACTOR
+2026-11-13T10:58:49.2685416Z   server-password: GITHUB_TOKEN
+2026-11-13T10:58:49.2685614Z   overwrite-settings: true
+2026-11-13T10:58:49.2685807Z   job-status: success
+2026-11-13T10:58:49.2687812Z   token: ***
+2026-11-13T10:58:49.2688006Z   show-download-progress: false
+2026-11-13T10:58:49.2688226Z ##[endgroup]
+2026-11-13T10:58:49.4108152Z ##[group]Installed distributions
+2026-11-13T10:58:49.4167035Z Resolved Java 21.0.13+9 from tool-cache
+2026-11-13T10:58:49.4167749Z Setting Java 21.0.13+9 as the default
+2026-11-13T10:58:49.4173299Z Creating toolchains.xml for JDK version 21 from temurin
+2026-11-13T10:58:49.4233132Z Writing to /home/runner/.m2/toolchains.xml
+2026-11-13T10:58:49.4233844Z 
+2026-11-13T10:58:49.4234497Z Java configuration:
+2026-11-13T10:58:49.4235201Z   Distribution: temurin
+2026-11-13T10:58:49.4235873Z   Version: 21.0.13+9
+2026-11-13T10:58:49.4236527Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:58:49.4237185Z 
+2026-11-13T10:58:49.4237920Z ##[endgroup]
+2026-11-13T10:58:49.4269863Z Creating settings.xml with server-id: github
+2026-11-13T10:58:49.4298918Z Writing to /home/runner/.m2/settings.xml
+2026-11-13T10:58:49.4305239Z Configured MAVEN_ARGS to include -ntp to suppress Maven transfer progress logs. Set 'show-download-progress: true' to keep the download progress output.
+2026-11-13T10:58:49.5085771Z ##[group]Run gradle/actions/setup-gradle@v5
+2026-11-13T10:58:49.5086055Z with:
+2026-11-13T10:58:49.5086238Z   gradle-version: 9.3.1
+2026-11-13T10:58:49.5086464Z   cache-disabled: false
+2026-11-13T10:58:49.5086655Z   cache-read-only: false
+2026-11-13T10:58:49.5086862Z   cache-write-only: false
+2026-11-13T10:58:49.5087077Z   cache-overwrite-existing: false
+2026-11-13T10:58:49.5087301Z   cache-cleanup: on-success
+2026-11-13T10:58:49.5087554Z   gradle-home-cache-includes: caches
+notifications
+
+2026-11-13T10:58:49.5087819Z   add-job-summary: always
+2026-11-13T10:58:49.5088032Z   add-job-summary-as-pr-comment: never
+2026-11-13T10:58:49.5088270Z   dependency-graph: disabled
+2026-11-13T10:58:49.5088537Z   dependency-graph-report-dir: dependency-graph-reports
+2026-11-13T10:58:49.5088950Z   dependency-graph-continue-on-failure: true
+2026-11-13T10:58:49.5089202Z   build-scan-publish: false
+2026-11-13T10:58:49.5089413Z   validate-wrappers: true
+2026-11-13T10:58:49.5089791Z   allow-snapshot-wrappers: false
+2026-11-13T10:58:49.5090024Z   gradle-home-cache-strict-match: false
+2026-11-13T10:58:49.5090261Z   workflow-job-context: null
+2026-11-13T10:58:49.5092331Z   github-token: ***
+2026-11-13T10:58:49.5092534Z env:
+2026-11-13T10:58:49.5092799Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:58:49.5093203Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:58:49.5093516Z   MAVEN_ARGS: -ntp
+2026-11-13T10:58:49.5093701Z ##[endgroup]
+2026-11-13T10:58:50.4840511Z Merged default JDK locations into /home/runner/.m2/toolchains.xml
+2026-11-13T10:58:50.4853992Z Preparing cache for cleanup.
+2026-11-13T10:58:50.4854715Z ##[group]Restore Gradle state from cache
+2026-11-13T10:58:50.5664621Z Gradle User Home cache not found. Will initialize empty.
+2026-11-13T10:58:50.5665742Z ##[endgroup]
+2026-11-13T10:58:50.5750504Z ##[group]All Gradle Wrapper jars are valid
+2026-11-13T10:58:50.5751837Z 
+2026-11-13T10:58:50.5752312Z ##[endgroup]
+2026-11-13T10:58:50.6563318Z ##[group]Provision Gradle 9.3.1
+2026-11-13T10:58:56.1728837Z Gradle distribution 9.3.1 not found in cache. Will download.
+2026-11-13T10:58:56.9291651Z Downloaded https://services.gradle.org/distributions/gradle-9.3.1-bin.zip to /home/runner/work/_temp/.gradle-actions/gradle-installations/downloads/gradle-9.3.1-bin.zip (size 137037885)
+2026-11-13T10:58:56.9425730Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/PlanFlow/PlanFlow --files-from manifest.txt --use-compress-program zstdmt
+2026-11-13T10:58:58.1866156Z Sent 2725375 of 136943103 (2.0%), 2.6 MBs/sec
+2026-11-13T10:58:58.6114251Z Sent 136943103 of 136943103 (100.0%), 91.6 MBs/sec
+2026-11-13T10:58:58.7466675Z [command]/usr/bin/unzip -o -q /home/runner/work/_temp/.gradle-actions/gradle-installations/downloads/gradle-9.3.1-bin.zip
+2026-11-13T10:58:59.5923897Z Extracted Gradle 9.3.1 to /home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-9.3.1
+2026-11-13T10:58:59.5925238Z Provisioned Gradle executable /home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-9.3.1/bin/gradle
+2026-11-13T10:58:59.5926474Z ##[endgroup]
+2026-11-13T10:58:59.6100842Z ##[group]Run if [ -f "debug.keystore.base64" ]; then
+2026-11-13T10:58:59.6101255Z [36;1mif [ -f "debug.keystore.base64" ]; then[0m
+2026-11-13T10:58:59.6101596Z [36;1m  base64 -d debug.keystore.base64 > debug.keystore || true[0m
+2026-11-13T10:58:59.6101876Z [36;1mfi[0m
+2026-11-13T10:58:59.6102061Z [36;1mif [ ! -s "debug.keystore" ]; then[0m
+2026-11-13T10:58:59.6102355Z [36;1m  keytool -genkeypair -v -keystore debug.keystore \[0m
+2026-11-13T10:58:59.6102726Z [36;1m    -storepass android -alias androiddebugkey -keypass android \[0m
+2026-11-13T10:58:59.6103058Z [36;1m    -keyalg RSA -keysize 2048 -validity 10000 \[0m
+2026-11-13T10:58:59.6103352Z [36;1m    -dname "CN=Android Debug,O=Android,C=US"[0m
+2026-11-13T10:58:59.6103595Z [36;1mfi[0m
+2026-11-13T10:58:59.6150710Z shell: /usr/bin/bash -e {0}
+2026-11-13T10:58:59.6150936Z env:
+2026-11-13T10:58:59.6151214Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:58:59.6151699Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:58:59.6152018Z   MAVEN_ARGS: -ntp
+2026-11-13T10:58:59.6152228Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-13T10:58:59.6152476Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-11-13T10:58:59.6152727Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-13T10:58:59.6152979Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-13T10:58:59.6153331Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-13T10:58:59.6153712Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-13T10:58:59.6153980Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-13T10:58:59.6154203Z ##[endgroup]
+2026-11-13T10:59:00.6859675Z Generating 2,048 bit RSA key pair and self-signed certificate (SHA384withRSA) with a validity of 10,000 days
+2026-11-13T10:59:00.6860746Z 	for: CN=Android Debug, O=Android, C=US
+2026-11-13T10:59:01.0017883Z [Storing debug.keystore]
+2026-11-13T10:59:01.1974796Z ##[group]Run cat <<EOF > .env
+2026-11-13T10:59:01.1975076Z [36;1mcat <<EOF > .env[0m
+2026-11-13T10:59:01.1975410Z [36;1mSUPABASE_URL=${SECRET_SUPABASE_URL:-https://your-project.supabase.co}[0m
+2026-11-13T10:59:01.1975847Z [36;1mSUPABASE_ANON_KEY=${SECRET_SUPABASE_ANON_KEY:-your-supabase-anon-key}[0m
+2026-11-13T10:59:01.1976161Z [36;1mGITHUB_OWNER=ygercan[0m
+2026-11-13T10:59:01.1976383Z [36;1mGITHUB_REPO=PlanFlow[0m
+2026-11-13T10:59:01.1976579Z [36;1mEOF[0m
+2026-11-13T10:59:01.2022010Z shell: /usr/bin/bash -e {0}
+2026-11-13T10:59:01.2022240Z env:
+2026-11-13T10:59:01.2022511Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:59:01.2022919Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:59:01.2023223Z   MAVEN_ARGS: -ntp
+2026-11-13T10:59:01.2023444Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-13T10:59:01.2023695Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-11-13T10:59:01.2024009Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-13T10:59:01.2024454Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-13T10:59:01.2024801Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-13T10:59:01.2025173Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-13T10:59:01.2025425Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-13T10:59:01.2025645Z   SECRET_SUPABASE_URL: 
+2026-11-13T10:59:01.2025836Z   SECRET_SUPABASE_ANON_KEY: 
+2026-11-13T10:59:01.2026039Z ##[endgroup]
+2026-11-13T10:59:01.2153869Z ##[group]Run if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+2026-11-13T10:59:01.2154253Z [36;1mif [[ "${GITHUB_REF}" == refs/tags/v* ]]; then[0m
+2026-11-13T10:59:01.2154526Z [36;1m  TAG_NAME="${GITHUB_REF#refs/tags/}"[0m
+2026-11-13T10:59:01.2154778Z [36;1m  VER_NAME="${TAG_NAME#v}"[0m
+2026-11-13T10:59:01.2154992Z [36;1melse[0m
+2026-11-13T10:59:01.2155197Z [36;1m  TAG_NAME="v1.0.${GITHUB_RUN_NUMBER}"[0m
+2026-11-13T10:59:01.2155461Z [36;1m  VER_NAME="1.0.${GITHUB_RUN_NUMBER}"[0m
+2026-11-13T10:59:01.2155710Z [36;1mfi[0m
+2026-11-13T10:59:01.2155925Z [36;1mecho "tag_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"[0m
+2026-11-13T10:59:01.2156235Z [36;1mecho "version_name=${VER_NAME}" >> "$GITHUB_OUTPUT"[0m
+2026-11-13T10:59:01.2156647Z [36;1msed -i "s/versionCode = [0-9]*/versionCode = ${GITHUB_RUN_NUMBER}/g" app/build.gradle.kts[0m
+2026-11-13T10:59:01.2157123Z [36;1msed -i "s/versionName = \"[^\"]*\"/versionName = \"${VER_NAME}\"/g" app/build.gradle.kts[0m
+2026-11-13T10:59:01.2201660Z shell: /usr/bin/bash -e {0}
+2026-11-13T10:59:01.2201883Z env:
+2026-11-13T10:59:01.2202145Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:59:01.2202546Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:59:01.2202853Z   MAVEN_ARGS: -ntp
+2026-11-13T10:59:01.2203061Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-13T10:59:01.2203311Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-11-13T10:59:01.2203555Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-13T10:59:01.2203817Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-13T10:59:01.2204164Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-13T10:59:01.2204540Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-13T10:59:01.2204800Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-13T10:59:01.2205017Z ##[endgroup]
+2026-11-13T10:59:01.2355528Z ##[group]Run if [ -f "./gradlew" ]; then
+2026-11-13T10:59:01.2355817Z [36;1mif [ -f "./gradlew" ]; then[0m
+2026-11-13T10:59:01.2356041Z [36;1m  chmod +x ./gradlew[0m
+2026-11-13T10:59:01.2356258Z [36;1m  ./gradlew assembleDebug \[0m
+2026-11-13T10:59:01.2356517Z [36;1m    -Dorg.gradle.configuration-cache=false \[0m
+2026-11-13T10:59:01.2356823Z [36;1m    -Dkotlin.compiler.execution.strategy=daemon \[0m
+2026-11-13T10:59:01.2357101Z [36;1m    -Pksp.incremental=false \[0m
+2026-11-13T10:59:01.2357339Z [36;1m    --stacktrace[0m
+2026-11-13T10:59:01.2357530Z [36;1melse[0m
+2026-11-13T10:59:01.2357730Z [36;1m  gradle assembleDebug \[0m
+2026-11-13T10:59:01.2357978Z [36;1m    -Dorg.gradle.configuration-cache=false \[0m
+2026-11-13T10:59:01.2358281Z [36;1m    -Dkotlin.compiler.execution.strategy=daemon \[0m
+2026-11-13T10:59:01.2358555Z [36;1m    -Pksp.incremental=false \[0m
+2026-11-13T10:59:01.2358779Z [36;1m    --stacktrace[0m
+2026-11-13T10:59:01.2358963Z [36;1mfi[0m
+2026-11-13T10:59:01.2404003Z shell: /usr/bin/bash -e {0}
+2026-11-13T10:59:01.2404232Z env:
+2026-11-13T10:59:01.2404498Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:59:01.2404997Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:59:01.2405337Z   MAVEN_ARGS: -ntp
+2026-11-13T10:59:01.2405549Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-13T10:59:01.2405792Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-11-13T10:59:01.2406033Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-13T10:59:01.2406271Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-13T10:59:01.2406792Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-13T10:59:01.2407161Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-13T10:59:01.2407418Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-13T10:59:01.2407670Z   JAVA_TOOL_OPTIONS: -Djava.awt.headless=true -Xmx4g
+2026-11-13T10:59:01.2407919Z ##[endgroup]
+2026-11-13T10:59:01.2641659Z Picked up JAVA_TOOL_OPTIONS: -Djava.awt.headless=true -Xmx4g
+2026-11-13T10:59:02.0770588Z 
+2026-11-13T10:59:02.0788420Z Welcome to Gradle 9.3.1!
+2026-11-13T10:59:02.0803073Z 
+2026-11-13T10:59:02.0803718Z Here are the highlights of this release:
+2026-11-13T10:59:02.0805603Z  - Test reporting improvements
+2026-11-13T10:59:02.0806897Z  - Error and warning improvements
+2026-11-13T10:59:02.0807400Z  - Build authoring improvements
+2026-11-13T10:59:02.0807764Z 
+2026-11-13T10:59:02.0808196Z For more details see https://docs.gradle.org/9.3.1/release-notes.html
+2026-11-13T10:59:02.0808759Z 
+2026-11-13T10:59:02.3761984Z Starting a Gradle Daemon (subsequent builds will be faster)
+2026-11-13T11:00:13.6782386Z > Task :app:preBuild UP-TO-DATE
+2026-11-13T11:00:13.6800108Z > Task :app:preDebugBuild UP-TO-DATE
+2026-11-13T11:00:13.6832791Z > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+2026-11-13T11:00:13.8755956Z > Task :app:generateDebugBuildConfig
+2026-11-13T11:00:13.8756561Z > Task :app:generateDebugResources
+2026-11-13T11:00:13.8777806Z 
+2026-11-13T11:00:13.8830435Z > Task :app:processDebugGoogleServices
+2026-11-13T11:00:13.8830872Z File google-services.json is missing.
+2026-11-13T11:00:13.8850454Z The Google Services Plugin cannot function without it.
+2026-11-13T11:00:13.8862707Z Searched locations: /home/runner/work/PlanFlow/PlanFlow/app/src/debug/google-services.json, /home/runner/work/PlanFlow/PlanFlow/app/src/debug/google-services.json, /home/runner/work/PlanFlow/PlanFlow/app/src/google-services.json, /home/runner/work/PlanFlow/PlanFlow/app/src/debug/google-services.json, /home/runner/work/PlanFlow/PlanFlow/app/src/Debug/google-services.json, /home/runner/work/PlanFlow/PlanFlow/app/google-services.json
+2026-11-13T11:00:13.9754521Z 
+2026-11-13T11:00:13.9780428Z > Task :app:packageDebugResources
+2026-11-13T11:00:25.6749012Z > Task :app:processDebugNavigationResources
+2026-11-13T11:00:27.5749206Z > Task :app:parseDebugLocalResources
+2026-11-13T11:00:38.1754381Z > Task :app:generateDebugAssets UP-TO-DATE
+2026-11-13T11:00:38.1773203Z > Task :app:javaPreCompileDebug
+2026-11-13T11:00:38.2749098Z > Task :app:generateDebugRFile
+2026-11-13T11:00:38.3752988Z > Task :app:mergeDebugAssets
+2026-11-13T11:00:38.3790515Z > Task :app:compressDebugAssets
+2026-11-13T11:00:41.3749250Z > Task :app:desugarDebugFileDependencies
+2026-11-13T11:00:41.5770993Z > Task :app:checkDebugDuplicateClasses
+2026-11-13T11:00:41.5800835Z > Task :app:checkDebugAarMetadata
+2026-11-13T11:00:57.4109924Z > Task :app:kspDebugKotlin
+2026-11-13T11:01:03.6799914Z ##[error]Exception in thread "AWT-EventQueue-0" java.lang.NullPointerException: Cannot invoke "ksp.com.intellij.openapi.application.Application.getService(java.lang.Class)" because the return value of "ksp.com.intellij.openapi.application.ApplicationManager.getApplication()" is null
+2026-11-13T11:01:03.6809145Z 
+2026-11-13T11:01:03.7801058Z 	at ksp.com.intellij.openapi.fileEditor.FileDocumentManager.getInstance(FileDocumentManager.java:35)
+2026-11-13T11:01:03.7841231Z 	at ksp.com.intellij.openapi.fileTypes.BinaryFileTypeDecompilers.lambda$notifyDecompilerSetChange$1(BinaryFileTypeDecompilers.java:29)
+2026-11-13T11:01:03.7850710Z 	at java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:318)
+2026-11-13T11:01:03.7910768Z 	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:773)
+2026-11-13T11:01:03.7950806Z 	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:720)
+2026-11-13T11:01:03.7988692Z 	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:714)
+2026-11-13T11:01:03.8030606Z 	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+2026-11-13T11:01:03.8070701Z 	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:87)
+2026-11-13T11:01:03.8130778Z 	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:742)
+2026-11-13T11:01:03.8150725Z 	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+2026-11-13T11:01:03.8210867Z 	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+2026-11-13T11:01:03.8250756Z 	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+2026-11-13T11:01:03.8291179Z 	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+2026-11-13T11:01:03.8330533Z 	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+2026-11-13T11:01:03.8390562Z 	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)
+2026-11-13T11:01:11.5800102Z 
+2026-11-13T11:01:11.5840553Z > Task :app:mergeExtDexDebug
+2026-11-13T11:03:01.1780938Z > Task :app:mapDebugSourceSetPaths
+2026-11-13T11:03:01.1850679Z > Task :app:mergeLibDexDebug
+2026-11-13T11:03:01.8752701Z > Task :app:createDebugCompatibleScreenManifests
+2026-11-13T11:03:01.8783824Z > Task :app:compileDebugNavigationResources
+2026-11-13T11:03:01.8820591Z > Task :app:extractDeepLinksDebug
+2026-11-13T11:03:05.4790794Z > Task :app:processDebugMainManifest
+2026-11-13T11:03:06.0749120Z > Task :app:processDebugManifest
+2026-11-13T11:03:06.1757158Z > Task :app:processDebugManifestForPackage
+2026-11-13T11:03:06.1770593Z > Task :app:mergeDebugJniLibFolders
+2026-11-13T11:03:06.7779346Z > Task :app:mergeDebugResources
+2026-11-13T11:03:06.9790583Z > Task :app:mergeDebugNativeLibs
+2026-11-13T11:03:08.1779983Z 
+2026-11-13T11:03:08.1820627Z > Task :app:stripDebugDebugSymbols
+2026-11-13T11:03:08.1873337Z Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so. Run with --info option to learn more.
+2026-11-13T11:03:08.1909925Z 
+2026-11-13T11:03:08.1950414Z > Task :app:validateSigningDebug
+2026-11-13T11:03:08.1990264Z > Task :app:writeDebugAppMetadata
+2026-11-13T11:03:08.4291045Z > Task :app:writeDebugSigningConfigVersions
+2026-11-13T11:03:09.0240539Z > Task :app:processDebugResources
+2026-11-13T11:03:15.8780971Z > Task :app:compileDebugKotlin
+2026-11-13T11:03:36.4756180Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/data/local/AppDatabase.kt:25:19 'fun fallbackToDestructiveMigration(): RoomDatabase.Builder<AppDatabase>' is deprecated. Replace by overloaded version with parameter to indicate if all tables should be dropped or not.
+2026-11-13T11:03:36.4765839Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/data/repository/CloudSyncManager.kt:96:61 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4767934Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/data/repository/GitHubReleaseManager.kt:44:62 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4770174Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/data/repository/GitHubReleaseManager.kt:190:61 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4772072Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/components/TaskItemCard.kt:279:42 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4773878Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/dialogs/AddEditTaskDialog.kt:321:67 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4775620Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/screens/CalendarScreen.kt:65:49 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4777331Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/screens/CalendarScreen.kt:70:52 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4779314Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/screens/DayFlowScreen.kt:82:62 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4781183Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/screens/DayFlowScreen.kt:83:58 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4782859Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/screens/OverviewScreen.kt:73:55 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4784493Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/theme/Theme.kt:74:24 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+2026-11-13T11:03:42.6750900Z Picked up JAVA_TOOL_OPTIONS: -Djava.awt.headless=true -Xmx4g
+2026-11-13T11:03:42.6751362Z 
+2026-11-13T11:03:42.6770236Z 
+2026-11-13T11:03:42.6770643Z > Task :app:compileDebugJavaWithJavac
+2026-11-13T11:03:43.4770745Z Picked up JAVA_TOOL_OPTIONS: -Djava.awt.headless=true -Xmx4g
+2026-11-13T11:03:43.4807152Z 
+2026-11-13T11:03:44.0760701Z Picked up JAVA_TOOL_OPTIONS: -Djava.awt.headless=true -Xmx4g
+2026-11-13T11:03:44.0799818Z 
+2026-11-13T11:03:51.1781648Z 
+2026-11-13T11:03:51.1813167Z > Task :app:processDebugJavaRes
+2026-11-13T11:03:55.3751082Z > Task :app:mergeDebugJavaResource
+2026-11-13T11:04:03.7801026Z > Task :app:dexBuilderDebug
+2026-11-13T11:04:04.1748924Z > Task :app:mergeProjectDexDebug
+2026-11-13T11:04:05.5749822Z > Task :app:packageDebug
+2026-11-13T11:04:05.5790691Z > Task :app:createDebugApkListingFileRedirect
+2026-11-13T11:04:05.5830496Z > Task :app:assembleDebug
+2026-11-13T11:04:05.6770984Z gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1794567548890.json
+2026-11-13T11:04:05.7767343Z 
+2026-11-13T11:04:05.7790598Z BUILD SUCCESSFUL in 5m 4s
+2026-11-13T11:04:05.7791136Z 39 actionable tasks: 39 executed
+2026-11-13T11:04:06.2059011Z ##[group]Run APK_NAME="PlanFlow-v1.0.2.apk"
+2026-11-13T11:04:06.2059455Z [36;1mAPK_NAME="PlanFlow-v1.0.2.apk"[0m
+2026-11-13T11:04:06.2083725Z [36;1mcp app/build/outputs/apk/debug/app-debug.apk "${APK_NAME}"[0m
+2026-11-13T11:04:06.2084247Z [36;1mecho "apk_path=${APK_NAME}" >> "$GITHUB_OUTPUT"[0m
+2026-11-13T11:04:06.2261331Z shell: /usr/bin/bash -e {0}
+2026-11-13T11:04:06.2261688Z env:
+2026-11-13T11:04:06.2262078Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T11:04:06.2262685Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T11:04:06.2263146Z   MAVEN_ARGS: -ntp
+2026-11-13T11:04:06.2263445Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-13T11:04:06.2263808Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-11-13T11:04:06.2264151Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-13T11:04:06.2264540Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-13T11:04:06.2265145Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-13T11:04:06.2265729Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-13T11:04:06.2266107Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-13T11:04:06.2266428Z ##[endgroup]
+2026-11-13T11:04:06.3196242Z ##[group]Run softprops/action-gh-release@v2
+2026-11-13T11:04:06.3196647Z with:
+2026-11-13T11:04:06.3196893Z   tag_name: v1.0.2
+2026-11-13T11:04:06.3197176Z   name: PlanFlow v1.0.2
+2026-11-13T11:04:06.3197470Z   generate_release_notes: true
+2026-11-13T11:04:06.3197793Z   files: PlanFlow-v1.0.2.apk
+2026-11-13T11:04:06.3198110Z   overwrite_files: true
+2026-11-13T11:04:06.3229303Z   token: ***
+2026-11-13T11:04:06.3229709Z env:
+2026-11-13T11:04:06.3230069Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T11:04:06.3230685Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T11:04:06.3231521Z   MAVEN_ARGS: -ntp
+2026-11-13T11:04:06.3231806Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-13T11:04:06.3232188Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-11-13T11:04:06.3232544Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-13T11:04:06.3232908Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-13T11:04:06.3233528Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-13T11:04:06.3234126Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-13T11:04:06.3234512Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-13T11:04:06.3237945Z   GITHUB_TOKEN: ***
+2026-11-13T11:04:06.3238191Z ##[endgroup]
+2026-11-13T11:04:06.9620172Z 👩‍🏭 Creating new GitHub release for tag v1.0.2...
+2026-11-13T11:04:08.0016431Z Release 444126119 is not yet discoverable by tag v1.0.2, retrying... (2 retries remaining)
+2026-11-13T11:04:09.4309698Z ⬆️ Uploading PlanFlow-v1.0.2.apk...
+2026-11-13T11:04:10.6671844Z ✅ Uploaded PlanFlow-v1.0.2.apk
+2026-11-13T11:04:10.6689487Z Finalizing release...
+2026-11-13T11:04:11.4689419Z Getting assets list...
+2026-11-13T11:04:11.6101424Z 🎉 Release ready at https://github.com/ygercan/PlanFlow/releases/tag/v1.0.2
+2026-11-13T11:04:11.6412223Z Post job cleanup.
+2026-11-13T11:04:12.1741660Z In post-action step
+2026-11-13T11:04:12.1760604Z ##[group]Stopping Gradle daemons
+2026-11-13T11:04:12.1761619Z Stopping Gradle daemons for /home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-9.3.1
+2026-11-13T11:04:12.1787276Z [command]/home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-9.3.1/bin/gradle --stop
+2026-11-13T11:04:13.6291205Z Stopping Daemon(s)
+2026-11-13T11:04:13.6310504Z 1 Daemon stopped
+2026-11-13T11:04:13.6561283Z ##[endgroup]
+2026-11-13T11:04:13.6661098Z ##[group]Provision Gradle >= 9.3.1
+2026-11-13T11:04:14.4911968Z Gradle version 9.3.1 is available at /home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-9.3.1/bin/gradle and >= 9.3.1. Not installing.
+2026-11-13T11:04:14.4913773Z ##[endgroup]
+2026-11-13T11:04:14.4920778Z ##[group]Executing Gradle to clean up caches
+2026-11-13T11:04:14.4921869Z Cleaning up caches last used before 1794567530484
+2026-11-13T11:04:14.4927945Z [command]/home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-9.3.1/bin/gradle -g /home/runner/.gradle -I init.gradle --info --no-daemon --no-scan --build-cache -DGITHUB_DEPENDENCY_GRAPH_ENABLED=false -DGRADLE_ACTIONS_SKIP_BUILD_RESULT_CAPTURE=true noop
+2026-11-13T11:04:15.0544210Z Initialized native services in: /home/runner/.gradle/native
+2026-11-13T11:04:15.0582415Z Initialized jansi services in: /home/runner/.gradle/native
+2026-11-13T11:04:15.2787498Z To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+2026-11-13T11:04:15.3813488Z Starting process 'Gradle build daemon'. Working directory: /home/runner/.gradle/daemon/9.3.1 Command: /usr/lib/jvm/temurin-21-jdk-amd64/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError -Xms256m -Xmx512m -Dfile.encoding=UTF-8 -Duser.country -Duser.language=en -Duser.variant -cp /home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-9.3.1/lib/gradle-daemon-main-9.3.1.jar -javaagent:/home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-9.3.1/lib/agents/gradle-instrumentation-agent-9.3.1.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 9.3.1
+2026-11-13T11:04:15.3818032Z Successfully started process 'Gradle build daemon'
+2026-11-13T11:04:16.5770758Z An attempt to start the daemon took 1.167 secs.
+2026-11-13T11:04:16.5792220Z The client will now receive all logging from the daemon (pid: 2697). The daemon log file: /home/runner/.gradle/daemon/9.3.1/daemon-2697.out.log
+2026-11-13T11:04:16.5795930Z Daemon will be stopped at the end of the build 
+2026-11-13T11:04:16.9780823Z Using 2 worker leases.
+2026-11-13T11:04:17.0811686Z Operational build model parameters: {requiresToolingModels=false, parallelProjectExecution=false, configureOnDemand=false, configurationCache=false, configurationCacheParallelStore=false, configurationCacheParallelLoad=true, isolatedProjects=false, parallelProjectConfiguration=false, intermediateModelCache=false, parallelToolingApiActions=false, invalidateCoupledProjects=false, modelAsProjectDependency=false, resilientModelBuilding=false}
+2026-11-13T11:04:17.3792824Z Received JVM installation metadata from '/usr/lib/jvm/temurin-21-jdk-amd64': {JAVA_HOME=/usr/lib/jvm/temurin-21-jdk-amd64, JAVA_VERSION=21.0.13, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=21.0.13+9-LTS, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=21.0.13+9-LTS, VM_VENDOR=Eclipse Adoptium, OS_ARCH=amd64}
+2026-11-13T11:04:17.6781280Z Watching the file system is configured to be enabled if available
+2026-11-13T11:04:17.7771087Z Now considering [/home/runner/work/_temp/dummy-cleanup-project] as hierarchies to watch
+2026-11-13T11:04:17.7800431Z File system watching is active
+2026-11-13T11:04:18.2792519Z Caching disabled for Groovy DSL script compilation (cp_init) because:
+2026-11-13T11:04:18.2835387Z   Build cache is disabled
+2026-11-13T11:04:18.2850361Z   Not worth caching.
+2026-11-13T11:04:18.2870878Z Compiling initialization script '/home/runner/work/_temp/dummy-cleanup-project/init.gradle' using SubsetScriptTransformer.
+2026-11-13T11:04:18.9800850Z Caching disabled for Groovy DSL script compilation (init) because:
+2026-11-13T11:04:18.9820459Z   Build cache is disabled
+2026-11-13T11:04:18.9840390Z   Not worth caching.
+2026-11-13T11:04:18.9841170Z Compiling initialization script '/home/runner/work/_temp/dummy-cleanup-project/init.gradle' using BuildScriptTransformer.
+2026-11-13T11:04:19.5780689Z gradle/actions: Not capturing build results
+2026-11-13T11:04:19.7782102Z Starting Build
+2026-11-13T11:04:19.8782597Z Caching disabled for Groovy DSL script compilation (cp_settings) because:
+2026-11-13T11:04:19.8799655Z   Build cache is disabled
+2026-11-13T11:04:19.8820134Z   Not worth caching.
+2026-11-13T11:04:19.8826323Z Compiling settings file '/home/runner/work/_temp/dummy-cleanup-project/settings.gradle' using SubsetScriptTransformer.
+2026-11-13T11:04:19.8840265Z Caching disabled for Groovy DSL script compilation (settings) because:
+2026-11-13T11:04:19.8860224Z   Build cache is disabled
+2026-11-13T11:04:19.8879983Z   Not worth caching.
+2026-11-13T11:04:19.8886422Z Compiling settings file '/home/runner/work/_temp/dummy-cleanup-project/settings.gradle' using BuildScriptTransformer.
+2026-11-13T11:04:19.9791234Z Settings evaluated using settings file '/home/runner/work/_temp/dummy-cleanup-project/settings.gradle'.
+2026-11-13T11:04:19.9810798Z Using local directory build cache for the root build (location = /home/runner/.gradle/caches/build-cache-1, remove unused entries = older than 2026-11-13 10:58:50 UTC).
+2026-11-13T11:04:20.0775340Z Projects loaded. Root project using build file '/home/runner/work/_temp/dummy-cleanup-project/build.gradle'.
+2026-11-13T11:04:20.1790855Z Included projects: [root project 'dummy-cleanup-project']
+2026-11-13T11:04:20.4768241Z 
+2026-11-13T11:04:20.4810740Z > Configure project :
+2026-11-13T11:04:20.4830952Z Evaluating root project 'dummy-cleanup-project' using build file '/home/runner/work/_temp/dummy-cleanup-project/build.gradle'.
+2026-11-13T11:04:20.4832669Z Caching disabled for Groovy DSL script compilation (cp_proj) because:
+2026-11-13T11:04:20.4850425Z   Not worth caching.
+2026-11-13T11:04:20.4870759Z Compiling build file '/home/runner/work/_temp/dummy-cleanup-project/build.gradle' using SubsetScriptTransformer.
+2026-11-13T11:04:20.4890254Z Caching disabled for Groovy DSL script compilation (proj) because:
+2026-11-13T11:04:20.4891038Z   Not worth caching.
+2026-11-13T11:04:20.4910570Z Compiling build file '/home/runner/work/_temp/dummy-cleanup-project/build.gradle' using BuildScriptTransformer.
+2026-11-13T11:04:20.4930526Z All projects evaluated.
+2026-11-13T11:04:20.4941373Z Task name matched 'noop'
+2026-11-13T11:04:20.4970134Z Selected primary task 'noop' from project :
+2026-11-13T11:04:20.4970830Z Tasks to be executed: [task ':noop']
+2026-11-13T11:04:20.4990143Z Tasks that were excluded: []
+2026-11-13T11:04:20.5010349Z Resolve mutations for :noop (Thread[#46,Execution worker,5,main]) started.
+2026-11-13T11:04:20.5784757Z :noop (Thread[#45,included builds,5,main]) started.
+2026-11-13T11:04:20.5820534Z 
+2026-11-13T11:04:20.5852333Z > Task :noop UP-TO-DATE
+2026-11-13T11:04:20.5868072Z Skipping task ':noop' as it has no actions.
+2026-11-13T11:04:20.5879839Z 
+2026-11-13T11:04:20.5889987Z BUILD SUCCESSFUL in 6s
+2026-11-13T11:04:20.5910487Z Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.3.1/userguide/configuration_cache_enabling.html
+2026-11-13T11:04:20.5927838Z Build cache (/home/runner/.gradle/caches/build-cache-1) removing files not accessed on or after Fri Nov 13 10:58:50 UTC 2026.
+2026-11-13T11:04:20.6806398Z Build cache (/home/runner/.gradle/caches/build-cache-1) cleanup deleted 0 files/directories.
+2026-11-13T11:04:20.6838014Z Build cache (/home/runner/.gradle/caches/build-cache-1) cleaned up in 0.105 secs.
+2026-11-13T11:04:20.7793878Z dependencies-accessors (/home/runner/.gradle/caches/9.3.1/dependencies-accessors) removing files not accessed on or after Fri Nov 13 10:58:50 UTC 2026.
+2026-11-13T11:04:20.7795576Z dependencies-accessors (/home/runner/.gradle/caches/9.3.1/dependencies-accessors) cleanup deleted 0 files/directories.
+2026-11-13T11:04:20.7796518Z dependencies-accessors (/home/runner/.gradle/caches/9.3.1/dependencies-accessors) cleaned up in 0.003 secs.
+2026-11-13T11:04:20.7797446Z groovy-dsl (/home/runner/.gradle/caches/9.3.1/groovy-dsl) removing files not accessed on or after Fri Nov 13 10:58:50 UTC 2026.
+2026-11-13T11:04:20.7798279Z groovy-dsl (/home/runner/.gradle/caches/9.3.1/groovy-dsl) cleanup deleted 0 files/directories.
+2026-11-13T11:04:20.7799007Z groovy-dsl (/home/runner/.gradle/caches/9.3.1/groovy-dsl) cleaned up in 0.003 secs.
+2026-11-13T11:04:20.7800043Z Artifact transforms cache (/home/runner/.gradle/caches/9.3.1/transforms) removing files not accessed on or after Fri Nov 13 10:58:50 UTC 2026.
+2026-11-13T11:04:20.8795769Z Artifact transforms cache (/home/runner/.gradle/caches/9.3.1/transforms) cleanup deleted 0 files/directories.
+2026-11-13T11:04:20.8835897Z Artifact transforms cache (/home/runner/.gradle/caches/9.3.1/transforms) cleaned up in 0.158 secs.
+2026-11-13T11:04:20.8860429Z jars (/home/runner/.gradle/caches/jars-9) cleanup deleted 0 files/directories.
+2026-11-13T11:04:20.8878848Z jars (/home/runner/.gradle/caches/jars-9) removing files not accessed on or after Fri Nov 13 10:58:50 UTC 2026.
+2026-11-13T11:04:20.8921187Z jars (/home/runner/.gradle/caches/jars-9) cleanup deleted 0 files/directories.
+2026-11-13T11:04:20.8924073Z jars (/home/runner/.gradle/caches/jars-9) cleaned up in 0.003 secs.
+2026-11-13T11:04:20.8960351Z artifact cache (/home/runner/.gradle/caches/modules-2) cleanup deleted 0 files/directories.
+2026-11-13T11:04:20.8961633Z artifact cache (/home/runner/.gradle/caches/modules-2) [subdir: /home/runner/.gradle/caches/modules-2/resources-2.1] cleanup deleted 0 files/directories.
+2026-11-13T11:04:20.8999224Z artifact cache (/home/runner/.gradle/caches/modules-2) [subdir: /home/runner/.gradle/caches/modules-2/resources-2.1] removing files not accessed on or after Fri Nov 13 10:58:50 UTC 2026.
+2026-11-13T11:04:20.9021273Z artifact cache (/home/runner/.gradle/caches/modules-2) [subdir: /home/runner/.gradle/caches/modules-2/resources-2.1] cleanup deleted 0 files/directories.
+2026-11-13T11:04:20.9040541Z artifact cache (/home/runner/.gradle/caches/modules-2) [subdir: /home/runner/.gradle/caches/modules-2/files-2.1] cleanup deleted 0 files/directories.
+2026-11-13T11:04:20.9052113Z artifact cache (/home/runner/.gradle/caches/modules-2) [subdir: /home/runner/.gradle/caches/modules-2/files-2.1] removing files not accessed on or after Fri Nov 13 10:58:50 UTC 2026.
+2026-11-13T11:04:20.9710913Z artifact cache (/home/runner/.gradle/caches/modules-2) [subdir: /home/runner/.gradle/caches/modules-2/files-2.1] cleanup deleted 0 files/directories.
+2026-11-13T11:04:20.9721047Z artifact cache (/home/runner/.gradle/caches/modules-2) [subdir: /home/runner/.gradle/caches/modules-2/metadata-2.107] cleanup deleted 0 files/directories.
+2026-11-13T11:04:20.9723579Z artifact cache (/home/runner/.gradle/caches/modules-2) cleanup deleted 0 files/directories.
+2026-11-13T11:04:20.9727451Z artifact cache (/home/runner/.gradle/caches/modules-2) cleaned up in 0.089 secs.
+2026-11-13T11:04:21.0790805Z ##[endgroup]
+2026-11-13T11:04:21.0791855Z ##[group]Caching Gradle state
+2026-11-13T11:04:21.1185633Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/PlanFlow/PlanFlow --files-from manifest.txt --use-compress-program zstdmt
+2026-11-13T11:04:21.7452180Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/PlanFlow/PlanFlow --files-from manifest.txt --use-compress-program zstdmt
+2026-11-13T11:04:21.7470568Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/PlanFlow/PlanFlow --files-from manifest.txt --use-compress-program zstdmt
+2026-11-13T11:04:21.8478120Z Sent 65229 of 65229 (100.0%), 0.9 MBs/sec
+2026-11-13T11:04:21.8831510Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/PlanFlow/PlanFlow --files-from manifest.txt --use-compress-program zstdmt
+2026-11-13T11:04:21.9580421Z Saved cache entry with key gradle-instrumented-jars-v1-31b53fbef466577ef899b19c3a12d8b0 from /home/runner/.gradle/caches/jars-*/*/ in 381ms
+2026-11-13T11:04:22.0339906Z Sent 88782 of 88782 (100.0%), 0.9 MBs/sec
+2026-11-13T11:04:22.0960221Z Sent 99518 of 99518 (100.0%), 1.3 MBs/sec
+2026-11-13T11:04:22.0986952Z Saved cache entry with key gradle-kotlin-dsl-v1-c9322b753a7f33a9b4e497c8105e6afa from /home/runner/.gradle/caches/*/kotlin-dsl/accessors/*/,/home/runner/.gradle/caches/*/kotlin-dsl/scripts/*/ in 500ms
+2026-11-13T11:04:22.2447456Z Saved cache entry with key gradle-groovy-dsl-v1-61ff4ee1bd1ce520bdcab6587e828280 from /home/runner/.gradle/caches/*/groovy-dsl/*/ in 599ms
+2026-11-13T11:04:22.5022649Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/PlanFlow/PlanFlow --files-from manifest.txt --use-compress-program zstdmt
+2026-11-13T11:04:22.9126178Z Sent 41993405 of 41993405 (100.0%), 61.0 MBs/sec
+2026-11-13T11:04:23.0143641Z Saved cache entry with key gradle-generated-gradle-jars-v1-cb4b032a7d08b9bf1e84e9eacaebcc29 from /home/runner/.gradle/caches/9.3.1/generated-gradle-jars/gradle-api-9.3.1.jar in 1823ms
+2026-11-13T11:04:24.1547607Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/PlanFlow/PlanFlow --files-from manifest.txt --use-compress-program zstdmt
+2026-11-13T11:04:24.9100728Z Sent 19112419 of 354656739 (5.4%), 18.2 MBs/sec
+2026-11-13T11:04:25.8762055Z Sent 354656739 of 354656739 (100.0%), 171.5 MBs/sec
+2026-11-13T11:04:26.0247607Z Saved cache entry with key gradle-dependencies-v1-198e75e2763a4c51c01755596a43fce9 from /home/runner/.gradle/caches/modules-*/files-*/*/*/*/* in 4474ms
+2026-11-13T11:04:27.7647970Z Sent 67108864 of 194744267 (34.5%), 64.0 MBs/sec
+2026-11-13T11:04:28.0050872Z Sent 194744267 of 194744267 (100.0%), 149.9 MBs/sec
+2026-11-13T11:04:28.1049941Z Saved cache entry with key gradle-transforms-v1-eecf8a56183d01e53631d29d620fba6e from /home/runner/.gradle/caches/transforms-4/*/,/home/runner/.gradle/caches/*/transforms/*/ in 5446ms
+2026-11-13T11:04:29.0692865Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/PlanFlow/PlanFlow --files-from manifest.txt --use-compress-program zstdmt
+2026-11-13T11:04:30.0725573Z Sent 40882934 of 40882934 (100.0%), 53.3 MBs/sec
+2026-11-13T11:04:30.1889464Z Saved cache entry with key gradle-home-v1|Linux-X64|build-and-release[8a80e0f82c1d0a799a0f610fc9fa1346]-92cbe5f633131ea79bd21bd32e7ab19ea81d8ae6 from /home/runner/.gradle/caches,/home/runner/.gradle/notifications,/home/runner/.gradle/.setup-gradle in 1134ms
+2026-11-13T11:04:30.1901695Z ##[endgroup]
+2026-11-13T11:04:30.1905094Z Generating Job Summary
+2026-11-13T11:04:30.1911605Z Completed post-action step
+2026-11-13T11:04:30.2228436Z Post job cleanup.
+2026-11-13T11:04:30.3624117Z Post job cleanup.
+2026-11-13T11:04:30.4777060Z [command]/usr/bin/git version
+2026-11-13T11:04:30.4844672Z git version 2.56.0
+2026-11-13T11:04:30.4904439Z Temporarily overriding HOME='/home/runner/work/_temp/b21af89e-047a-4d1c-af43-55f4911278ce' before making global git config changes
+2026-11-13T11:04:30.4914807Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-13T11:04:30.4915895Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/PlanFlow/PlanFlow
+2026-11-13T11:04:30.5003203Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-13T11:04:30.5068618Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-13T11:04:30.5545819Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-13T11:04:30.5561343Z http.https://github.com/.extraheader
+2026-11-13T11:04:30.5630529Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-13T11:04:30.5681032Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-13T11:04:30.5971822Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-13T11:04:30.6015008Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-13T11:04:30.6434958Z Cleaning up orphan processes
+2026-11-13T11:04:30.6732381Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: softprops/action-gh-release@v2. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

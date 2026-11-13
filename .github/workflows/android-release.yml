@@ -33,8 +33,12 @@ jobs:
           gradle-version: '9.3.1'
 
       - name: Prepare Debug Keystore
+        env:
+          SECRET_DEBUG_KEYSTORE_BASE64: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
         run: |
-          if [ -f "debug.keystore.base64" ]; then
+          if [ -n "${SECRET_DEBUG_KEYSTORE_BASE64}" ]; then
+            echo "${SECRET_DEBUG_KEYSTORE_BASE64}" | base64 -d > debug.keystore || true
+          elif [ -f "debug.keystore.base64" ]; then
             base64 -d debug.keystore.base64 > debug.keystore || true
           fi
           if [ ! -s "debug.keystore" ]; then

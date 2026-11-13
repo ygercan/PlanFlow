@@ -1,0 +1,135 @@
+﻿2026-11-13T10:59:01.2355518Z ##[group]Run if [ -f "./gradlew" ]; then
+2026-11-13T10:59:01.2355815Z [36;1mif [ -f "./gradlew" ]; then[0m
+2026-11-13T10:59:01.2356038Z [36;1m  chmod +x ./gradlew[0m
+2026-11-13T10:59:01.2356256Z [36;1m  ./gradlew assembleDebug \[0m
+2026-11-13T10:59:01.2356515Z [36;1m    -Dorg.gradle.configuration-cache=false \[0m
+2026-11-13T10:59:01.2356821Z [36;1m    -Dkotlin.compiler.execution.strategy=daemon \[0m
+2026-11-13T10:59:01.2357100Z [36;1m    -Pksp.incremental=false \[0m
+2026-11-13T10:59:01.2357337Z [36;1m    --stacktrace[0m
+2026-11-13T10:59:01.2357528Z [36;1melse[0m
+2026-11-13T10:59:01.2357728Z [36;1m  gradle assembleDebug \[0m
+2026-11-13T10:59:01.2357976Z [36;1m    -Dorg.gradle.configuration-cache=false \[0m
+2026-11-13T10:59:01.2358279Z [36;1m    -Dkotlin.compiler.execution.strategy=daemon \[0m
+2026-11-13T10:59:01.2358553Z [36;1m    -Pksp.incremental=false \[0m
+2026-11-13T10:59:01.2358777Z [36;1m    --stacktrace[0m
+2026-11-13T10:59:01.2358961Z [36;1mfi[0m
+2026-11-13T10:59:01.2403938Z shell: /usr/bin/bash -e {0}
+2026-11-13T10:59:01.2404230Z env:
+2026-11-13T10:59:01.2404495Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:59:01.2404994Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:59:01.2405335Z   MAVEN_ARGS: -ntp
+2026-11-13T10:59:01.2405547Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-13T10:59:01.2405791Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-11-13T10:59:01.2406032Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-13T10:59:01.2406269Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-13T10:59:01.2406788Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-13T10:59:01.2407159Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-13T10:59:01.2407416Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-13T10:59:01.2407668Z   JAVA_TOOL_OPTIONS: -Djava.awt.headless=true -Xmx4g
+2026-11-13T10:59:01.2407913Z ##[endgroup]
+2026-11-13T10:59:01.2641613Z Picked up JAVA_TOOL_OPTIONS: -Djava.awt.headless=true -Xmx4g
+2026-11-13T10:59:02.0770530Z 
+2026-11-13T10:59:02.0788383Z Welcome to Gradle 9.3.1!
+2026-11-13T10:59:02.0802995Z 
+2026-11-13T10:59:02.0803713Z Here are the highlights of this release:
+2026-11-13T10:59:02.0805589Z  - Test reporting improvements
+2026-11-13T10:59:02.0806890Z  - Error and warning improvements
+2026-11-13T10:59:02.0807397Z  - Build authoring improvements
+2026-11-13T10:59:02.0807760Z 
+2026-11-13T10:59:02.0808192Z For more details see https://docs.gradle.org/9.3.1/release-notes.html
+2026-11-13T10:59:02.0808754Z 
+2026-11-13T10:59:02.3761919Z Starting a Gradle Daemon (subsequent builds will be faster)
+2026-11-13T11:00:13.6782334Z > Task :app:preBuild UP-TO-DATE
+2026-11-13T11:00:13.6800084Z > Task :app:preDebugBuild UP-TO-DATE
+2026-11-13T11:00:13.6832763Z > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+2026-11-13T11:00:13.8755909Z > Task :app:generateDebugBuildConfig
+2026-11-13T11:00:13.8756518Z > Task :app:generateDebugResources
+2026-11-13T11:00:13.8777778Z 
+2026-11-13T11:00:13.8830404Z > Task :app:processDebugGoogleServices
+2026-11-13T11:00:13.8830870Z File google-services.json is missing.
+2026-11-13T11:00:13.8850437Z The Google Services Plugin cannot function without it.
+2026-11-13T11:00:13.8862690Z Searched locations: /home/runner/work/PlanFlow/PlanFlow/app/src/debug/google-services.json, /home/runner/work/PlanFlow/PlanFlow/app/src/debug/google-services.json, /home/runner/work/PlanFlow/PlanFlow/app/src/google-services.json, /home/runner/work/PlanFlow/PlanFlow/app/src/debug/google-services.json, /home/runner/work/PlanFlow/PlanFlow/app/src/Debug/google-services.json, /home/runner/work/PlanFlow/PlanFlow/app/google-services.json
+2026-11-13T11:00:13.9754458Z 
+2026-11-13T11:00:13.9780410Z > Task :app:packageDebugResources
+2026-11-13T11:00:25.6748961Z > Task :app:processDebugNavigationResources
+2026-11-13T11:00:27.5749159Z > Task :app:parseDebugLocalResources
+2026-11-13T11:00:38.1753962Z > Task :app:generateDebugAssets UP-TO-DATE
+2026-11-13T11:00:38.1773171Z > Task :app:javaPreCompileDebug
+2026-11-13T11:00:38.2749052Z > Task :app:generateDebugRFile
+2026-11-13T11:00:38.3752946Z > Task :app:mergeDebugAssets
+2026-11-13T11:00:38.3790467Z > Task :app:compressDebugAssets
+2026-11-13T11:00:41.3749197Z > Task :app:desugarDebugFileDependencies
+2026-11-13T11:00:41.5770933Z > Task :app:checkDebugDuplicateClasses
+2026-11-13T11:00:41.5800800Z > Task :app:checkDebugAarMetadata
+2026-11-13T11:00:57.4109860Z > Task :app:kspDebugKotlin
+2026-11-13T11:01:03.6799861Z ##[error]Exception in thread "AWT-EventQueue-0" java.lang.NullPointerException: Cannot invoke "ksp.com.intellij.openapi.application.Application.getService(java.lang.Class)" because the return value of "ksp.com.intellij.openapi.application.ApplicationManager.getApplication()" is null
+2026-11-13T11:01:03.6809117Z 
+2026-11-13T11:01:03.7800992Z 	at ksp.com.intellij.openapi.fileEditor.FileDocumentManager.getInstance(FileDocumentManager.java:35)
+2026-11-13T11:01:03.7841153Z 	at ksp.com.intellij.openapi.fileTypes.BinaryFileTypeDecompilers.lambda$notifyDecompilerSetChange$1(BinaryFileTypeDecompilers.java:29)
+2026-11-13T11:01:03.7850682Z 	at java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:318)
+2026-11-13T11:01:03.7910726Z 	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:773)
+2026-11-13T11:01:03.7950773Z 	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:720)
+2026-11-13T11:01:03.7988665Z 	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:714)
+2026-11-13T11:01:03.8030576Z 	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+2026-11-13T11:01:03.8070672Z 	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:87)
+2026-11-13T11:01:03.8130737Z 	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:742)
+2026-11-13T11:01:03.8150692Z 	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+2026-11-13T11:01:03.8210794Z 	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+2026-11-13T11:01:03.8250725Z 	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+2026-11-13T11:01:03.8291144Z 	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+2026-11-13T11:01:03.8330495Z 	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+2026-11-13T11:01:03.8390532Z 	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)
+2026-11-13T11:01:11.5800039Z 
+2026-11-13T11:01:11.5840512Z > Task :app:mergeExtDexDebug
+2026-11-13T11:03:01.1780882Z > Task :app:mapDebugSourceSetPaths
+2026-11-13T11:03:01.1850631Z > Task :app:mergeLibDexDebug
+2026-11-13T11:03:01.8752653Z > Task :app:createDebugCompatibleScreenManifests
+2026-11-13T11:03:01.8783784Z > Task :app:compileDebugNavigationResources
+2026-11-13T11:03:01.8820557Z > Task :app:extractDeepLinksDebug
+2026-11-13T11:03:05.4790695Z > Task :app:processDebugMainManifest
+2026-11-13T11:03:06.0749075Z > Task :app:processDebugManifest
+2026-11-13T11:03:06.1757103Z > Task :app:processDebugManifestForPackage
+2026-11-13T11:03:06.1770560Z > Task :app:mergeDebugJniLibFolders
+2026-11-13T11:03:06.7779290Z > Task :app:mergeDebugResources
+2026-11-13T11:03:06.9790532Z > Task :app:mergeDebugNativeLibs
+2026-11-13T11:03:08.1779928Z 
+2026-11-13T11:03:08.1820584Z > Task :app:stripDebugDebugSymbols
+2026-11-13T11:03:08.1873297Z Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so. Run with --info option to learn more.
+2026-11-13T11:03:08.1909886Z 
+2026-11-13T11:03:08.1950373Z > Task :app:validateSigningDebug
+2026-11-13T11:03:08.1990235Z > Task :app:writeDebugAppMetadata
+2026-11-13T11:03:08.4290989Z > Task :app:writeDebugSigningConfigVersions
+2026-11-13T11:03:09.0240478Z > Task :app:processDebugResources
+2026-11-13T11:03:15.8780910Z > Task :app:compileDebugKotlin
+2026-11-13T11:03:36.4755691Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/data/local/AppDatabase.kt:25:19 'fun fallbackToDestructiveMigration(): RoomDatabase.Builder<AppDatabase>' is deprecated. Replace by overloaded version with parameter to indicate if all tables should be dropped or not.
+2026-11-13T11:03:36.4765824Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/data/repository/CloudSyncManager.kt:96:61 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4767927Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/data/repository/GitHubReleaseManager.kt:44:62 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4770163Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/data/repository/GitHubReleaseManager.kt:190:61 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4772050Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/components/TaskItemCard.kt:279:42 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4773859Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/dialogs/AddEditTaskDialog.kt:321:67 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4775612Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/screens/CalendarScreen.kt:65:49 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4777327Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/screens/CalendarScreen.kt:70:52 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4779306Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/screens/DayFlowScreen.kt:82:62 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4781164Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/screens/DayFlowScreen.kt:83:58 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4782852Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/screens/OverviewScreen.kt:73:55 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+2026-11-13T11:03:36.4784488Z w: file:///home/runner/work/PlanFlow/PlanFlow/app/src/main/java/com/example/ui/theme/Theme.kt:74:24 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+2026-11-13T11:03:42.6750852Z Picked up JAVA_TOOL_OPTIONS: -Djava.awt.headless=true -Xmx4g
+2026-11-13T11:03:42.6751358Z 
+2026-11-13T11:03:42.6770215Z 
+2026-11-13T11:03:42.6770638Z > Task :app:compileDebugJavaWithJavac
+2026-11-13T11:03:43.4770688Z Picked up JAVA_TOOL_OPTIONS: -Djava.awt.headless=true -Xmx4g
+2026-11-13T11:03:43.4807105Z 
+2026-11-13T11:03:44.0760650Z Picked up JAVA_TOOL_OPTIONS: -Djava.awt.headless=true -Xmx4g
+2026-11-13T11:03:44.0799787Z 
+2026-11-13T11:03:51.1781544Z 
+2026-11-13T11:03:51.1813129Z > Task :app:processDebugJavaRes
+2026-11-13T11:03:55.3751031Z > Task :app:mergeDebugJavaResource
+2026-11-13T11:04:03.7800976Z > Task :app:dexBuilderDebug
+2026-11-13T11:04:04.1748878Z > Task :app:mergeProjectDexDebug
+2026-11-13T11:04:05.5749774Z > Task :app:packageDebug
+2026-11-13T11:04:05.5790651Z > Task :app:createDebugApkListingFileRedirect
+2026-11-13T11:04:05.5830463Z > Task :app:assembleDebug
+2026-11-13T11:04:05.6770936Z gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1794567548890.json
+2026-11-13T11:04:05.7767281Z 
+2026-11-13T11:04:05.7790573Z BUILD SUCCESSFUL in 5m 4s
+2026-11-13T11:04:05.7791131Z 39 actionable tasks: 39 executed

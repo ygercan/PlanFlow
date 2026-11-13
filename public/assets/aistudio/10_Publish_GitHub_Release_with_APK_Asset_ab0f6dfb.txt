@@ -1,0 +1,28 @@
+﻿2026-11-13T11:04:06.3196220Z ##[group]Run softprops/action-gh-release@v2
+2026-11-13T11:04:06.3196644Z with:
+2026-11-13T11:04:06.3196890Z   tag_name: v1.0.2
+2026-11-13T11:04:06.3197174Z   name: PlanFlow v1.0.2
+2026-11-13T11:04:06.3197467Z   generate_release_notes: true
+2026-11-13T11:04:06.3197791Z   files: PlanFlow-v1.0.2.apk
+2026-11-13T11:04:06.3198108Z   overwrite_files: true
+2026-11-13T11:04:06.3229285Z   token: ***
+2026-11-13T11:04:06.3229705Z env:
+2026-11-13T11:04:06.3230065Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T11:04:06.3230682Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T11:04:06.3231518Z   MAVEN_ARGS: -ntp
+2026-11-13T11:04:06.3231803Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-13T11:04:06.3232179Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-11-13T11:04:06.3232542Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-13T11:04:06.3232906Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-13T11:04:06.3233430Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-13T11:04:06.3234124Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-13T11:04:06.3234510Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-13T11:04:06.3237942Z   GITHUB_TOKEN: ***
+2026-11-13T11:04:06.3238189Z ##[endgroup]
+2026-11-13T11:04:06.9620123Z 👩‍🏭 Creating new GitHub release for tag v1.0.2...
+2026-11-13T11:04:08.0016384Z Release 444126119 is not yet discoverable by tag v1.0.2, retrying... (2 retries remaining)
+2026-11-13T11:04:09.4309474Z ⬆️ Uploading PlanFlow-v1.0.2.apk...
+2026-11-13T11:04:10.6671796Z ✅ Uploaded PlanFlow-v1.0.2.apk
+2026-11-13T11:04:10.6689463Z Finalizing release...
+2026-11-13T11:04:11.4689370Z Getting assets list...
+2026-11-13T11:04:11.6101371Z 🎉 Release ready at https://github.com/ygercan/PlanFlow/releases/tag/v1.0.2

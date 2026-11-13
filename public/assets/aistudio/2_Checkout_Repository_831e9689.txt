@@ -1,0 +1,77 @@
+﻿2026-11-13T10:58:47.8671528Z ##[group]Run actions/checkout@v5
+2026-11-13T10:58:47.8672098Z with:
+2026-11-13T10:58:47.8672318Z   fetch-depth: 0
+2026-11-13T10:58:47.8672553Z   repository: ygercan/PlanFlow
+2026-11-13T10:58:47.8674733Z   token: ***
+2026-11-13T10:58:47.8674955Z   ssh-strict: true
+2026-11-13T10:58:47.8675177Z   ssh-user: git
+2026-11-13T10:58:47.8675397Z   persist-credentials: true
+2026-11-13T10:58:47.8675639Z   clean: true
+2026-11-13T10:58:47.8675862Z   sparse-checkout-cone-mode: true
+2026-11-13T10:58:47.8676115Z   fetch-tags: false
+2026-11-13T10:58:47.8676345Z   show-progress: true
+2026-11-13T10:58:47.8676582Z   lfs: false
+2026-11-13T10:58:47.8676796Z   submodules: false
+2026-11-13T10:58:47.8677018Z   set-safe-directory: true
+2026-11-13T10:58:47.8677266Z   allow-unsafe-pr-checkout: false
+2026-11-13T10:58:47.8677677Z ##[endgroup]
+2026-11-13T10:58:48.1691734Z Syncing repository: ygercan/PlanFlow
+2026-11-13T10:58:48.1694040Z ##[group]Getting Git version info
+2026-11-13T10:58:48.1694758Z Working directory is '/home/runner/work/PlanFlow/PlanFlow'
+2026-11-13T10:58:48.1695683Z [command]/usr/bin/git version
+2026-11-13T10:58:48.1829667Z git version 2.56.0
+2026-11-13T10:58:48.2134147Z ##[endgroup]
+2026-11-13T10:58:48.2151327Z Temporarily overriding HOME='/home/runner/work/_temp/edcc4211-1db0-4239-9d12-6d6accb0054f' before making global git config changes
+2026-11-13T10:58:48.2155094Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-13T10:58:48.2156623Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/PlanFlow/PlanFlow
+2026-11-13T10:58:48.2157854Z Deleting the contents of '/home/runner/work/PlanFlow/PlanFlow'
+2026-11-13T10:58:48.2159350Z ##[group]Initializing the repository
+2026-11-13T10:58:48.2159996Z [command]/usr/bin/git init /home/runner/work/PlanFlow/PlanFlow
+2026-11-13T10:58:48.2324709Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-13T10:58:48.2325721Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-13T10:58:48.2326457Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-13T10:58:48.2327034Z hint: call:
+2026-11-13T10:58:48.2327324Z hint:
+2026-11-13T10:58:48.2327739Z hint: 	git config --global init.defaultBranch <name>
+2026-11-13T10:58:48.2328181Z hint:
+2026-11-13T10:58:48.2328602Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-13T10:58:48.2329275Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-13T10:58:48.2329986Z hint:
+2026-11-13T10:58:48.2330302Z hint: 	git branch -m <name>
+2026-11-13T10:58:48.2330647Z hint:
+2026-11-13T10:58:48.2331100Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-13T10:58:48.2331826Z Initialized empty Git repository in /home/runner/work/PlanFlow/PlanFlow/.git/
+2026-11-13T10:58:48.2333329Z [command]/usr/bin/git remote add origin https://github.com/ygercan/PlanFlow
+2026-11-13T10:58:48.2375946Z ##[endgroup]
+2026-11-13T10:58:48.2376905Z ##[group]Disabling automatic garbage collection
+2026-11-13T10:58:48.2379981Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-13T10:58:48.2750726Z ##[endgroup]
+2026-11-13T10:58:48.2751569Z ##[group]Setting up auth
+2026-11-13T10:58:48.2756531Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-13T10:58:48.2772867Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-13T10:58:48.3193407Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-13T10:58:48.3227892Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-13T10:58:48.3495242Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-13T10:58:48.3533701Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-13T10:58:48.3808165Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-13T10:58:48.3845050Z ##[endgroup]
+2026-11-13T10:58:48.3846145Z ##[group]Fetching the repository
+2026-11-13T10:58:48.3854036Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+2026-11-13T10:58:48.8417571Z From https://github.com/ygercan/PlanFlow
+2026-11-13T10:58:48.8419852Z  * [new branch]      main       -> origin/main
+2026-11-13T10:58:48.8422448Z [command]/usr/bin/git branch --list --remote origin/main
+2026-11-13T10:58:48.8423109Z   origin/main
+2026-11-13T10:58:48.8424356Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+2026-11-13T10:58:48.8425004Z 92cbe5f633131ea79bd21bd32e7ab19ea81d8ae6
+2026-11-13T10:58:48.8426682Z ##[endgroup]
+2026-11-13T10:58:48.8427335Z ##[group]Determining the checkout info
+2026-11-13T10:58:48.8427976Z ##[endgroup]
+2026-11-13T10:58:48.8428454Z [command]/usr/bin/git sparse-checkout disable
+2026-11-13T10:58:48.9638606Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-13T10:58:49.0231562Z ##[group]Checking out the ref
+2026-11-13T10:58:49.0235279Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-11-13T10:58:49.1451819Z Switched to a new branch 'main'
+2026-11-13T10:58:49.1472964Z branch 'main' set up to track 'origin/main'.
+2026-11-13T10:58:49.1524705Z ##[endgroup]
+2026-11-13T10:58:49.1570109Z [command]/usr/bin/git log -1 --format=%H
+2026-11-13T10:58:49.1597131Z 92cbe5f633131ea79bd21bd32e7ab19ea81d8ae6

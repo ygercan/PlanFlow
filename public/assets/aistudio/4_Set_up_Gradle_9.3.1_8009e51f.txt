@@ -1,0 +1,45 @@
+﻿2026-11-13T10:58:49.5085749Z ##[group]Run gradle/actions/setup-gradle@v5
+2026-11-13T10:58:49.5086051Z with:
+2026-11-13T10:58:49.5086235Z   gradle-version: 9.3.1
+2026-11-13T10:58:49.5086462Z   cache-disabled: false
+2026-11-13T10:58:49.5086652Z   cache-read-only: false
+2026-11-13T10:58:49.5086860Z   cache-write-only: false
+2026-11-13T10:58:49.5087074Z   cache-overwrite-existing: false
+2026-11-13T10:58:49.5087299Z   cache-cleanup: on-success
+2026-11-13T10:58:49.5087541Z   gradle-home-cache-includes: caches
+notifications
+
+2026-11-13T10:58:49.5087817Z   add-job-summary: always
+2026-11-13T10:58:49.5088029Z   add-job-summary-as-pr-comment: never
+2026-11-13T10:58:49.5088267Z   dependency-graph: disabled
+2026-11-13T10:58:49.5088534Z   dependency-graph-report-dir: dependency-graph-reports
+2026-11-13T10:58:49.5088947Z   dependency-graph-continue-on-failure: true
+2026-11-13T10:58:49.5089200Z   build-scan-publish: false
+2026-11-13T10:58:49.5089411Z   validate-wrappers: true
+2026-11-13T10:58:49.5089734Z   allow-snapshot-wrappers: false
+2026-11-13T10:58:49.5090022Z   gradle-home-cache-strict-match: false
+2026-11-13T10:58:49.5090259Z   workflow-job-context: null
+2026-11-13T10:58:49.5092328Z   github-token: ***
+2026-11-13T10:58:49.5092531Z env:
+2026-11-13T10:58:49.5092795Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:58:49.5093199Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+2026-11-13T10:58:49.5093513Z   MAVEN_ARGS: -ntp
+2026-11-13T10:58:49.5093699Z ##[endgroup]
+2026-11-13T10:58:50.4840441Z Merged default JDK locations into /home/runner/.m2/toolchains.xml
+2026-11-13T10:58:50.4853975Z Preparing cache for cleanup.
+2026-11-13T10:58:50.4854711Z ##[group]Restore Gradle state from cache
+2026-11-13T10:58:50.5664583Z Gradle User Home cache not found. Will initialize empty.
+2026-11-13T10:58:50.5665736Z ##[endgroup]
+2026-11-13T10:58:50.5750475Z ##[group]All Gradle Wrapper jars are valid
+2026-11-13T10:58:50.5751830Z 
+2026-11-13T10:58:50.5752307Z ##[endgroup]
+2026-11-13T10:58:50.6563225Z ##[group]Provision Gradle 9.3.1
+2026-11-13T10:58:56.1728794Z Gradle distribution 9.3.1 not found in cache. Will download.
+2026-11-13T10:58:56.9291601Z Downloaded https://services.gradle.org/distributions/gradle-9.3.1-bin.zip to /home/runner/work/_temp/.gradle-actions/gradle-installations/downloads/gradle-9.3.1-bin.zip (size 137037885)
+2026-11-13T10:58:56.9425683Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/PlanFlow/PlanFlow --files-from manifest.txt --use-compress-program zstdmt
+2026-11-13T10:58:58.1866106Z Sent 2725375 of 136943103 (2.0%), 2.6 MBs/sec
+2026-11-13T10:58:58.6114201Z Sent 136943103 of 136943103 (100.0%), 91.6 MBs/sec
+2026-11-13T10:58:58.7466624Z [command]/usr/bin/unzip -o -q /home/runner/work/_temp/.gradle-actions/gradle-installations/downloads/gradle-9.3.1-bin.zip
+2026-11-13T10:58:59.5923843Z Extracted Gradle 9.3.1 to /home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-9.3.1
+2026-11-13T10:58:59.5925195Z Provisioned Gradle executable /home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-9.3.1/bin/gradle
+2026-11-13T10:58:59.5926466Z ##[endgroup]
