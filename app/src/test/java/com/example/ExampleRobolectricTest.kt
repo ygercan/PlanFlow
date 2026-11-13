@@ -176,11 +176,11 @@ class ExampleRobolectricTest {
               "name": "PlanFlow v1.0.5",
               "body": "- Yeni ozellik eklendi\n- Atomik guncelleme",
               "published_at": "2026-11-12T10:00:00Z",
-              "html_url": "https://github.com/ygercn/planflow/releases/tag/v1.0.5",
+              "html_url": "https://github.com/example-owner/planflow/releases/tag/v1.0.5",
               "assets": [
                 {
                   "name": "PlanFlow-v1.0.5.apk",
-                  "browser_download_url": "https://github.com/ygercn/planflow/releases/download/v1.0.5/PlanFlow-v1.0.5.apk",
+                  "browser_download_url": "https://github.com/example-owner/planflow/releases/download/v1.0.5/PlanFlow-v1.0.5.apk",
                   "size": 10485760
                 }
               ]
@@ -192,7 +192,7 @@ class ExampleRobolectricTest {
         assertTrue(info.isNewerThanInstalled)
         assertEquals("v1.0.5", info.tagName)
         assertEquals(
-            "https://github.com/ygercn/planflow/releases/download/v1.0.5/PlanFlow-v1.0.5.apk",
+            "https://github.com/example-owner/planflow/releases/download/v1.0.5/PlanFlow-v1.0.5.apk",
             info.preferredDownloadOrReleaseUrl
         )
     }

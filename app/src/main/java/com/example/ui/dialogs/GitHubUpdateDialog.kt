@@ -255,7 +255,7 @@ fun GitHubUpdateDialog(
                         value = ownerInput,
                         onValueChange = { ownerInput = it },
                         label = { Text("Kullanıcı (Owner)", fontSize = 11.sp) },
-                        placeholder = { Text("ornek: ygercn", fontSize = 11.sp) },
+                        placeholder = { Text("ornek: kullanici-adi", fontSize = 11.sp) },
                         singleLine = true,
                         modifier = Modifier
                             .weight(1f)

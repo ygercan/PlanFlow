@@ -32,7 +32,7 @@ class CloudSyncManager(private val context: Context) {
 
     companion object {
         const val TABLE_NAME = "planflow_tasks"
-        const val DEFAULT_ACCOUNT_KEY = "ygercn@gmail.com"
+        const val DEFAULT_ACCOUNT_KEY = "planflow-workspace"
 
         val SUPABASE_SCHEMA_SQL = """
             CREATE TABLE IF NOT EXISTS public.planflow_tasks (
@@ -65,13 +65,22 @@ class CloudSyncManager(private val context: Context) {
         """.trimIndent()
     }
 
+    private fun getConfiguredDefaultAccountKey(): String {
+        val fromBuildConfig = try {
+            BuildConfig.SUPABASE_ACCOUNT_KEY.trim()
+        } catch (_: Exception) {
+            ""
+        }
+        return if (fromBuildConfig.isNotBlank()) fromBuildConfig else DEFAULT_ACCOUNT_KEY
+    }
+
     fun getAccountKey(): String {
         val saved = prefs.getString("account_key", null)
-        return if (!saved.isNullOrBlank()) saved.trim() else DEFAULT_ACCOUNT_KEY
+        return if (!saved.isNullOrBlank()) saved.trim() else getConfiguredDefaultAccountKey()
     }
 
     fun setAccountKey(newKey: String) {
-        val cleaned = newKey.trim().ifBlank { DEFAULT_ACCOUNT_KEY }
+        val cleaned = newKey.trim().ifBlank { getConfiguredDefaultAccountKey() }
         prefs.edit().putString("account_key", cleaned).apply()
     }
 

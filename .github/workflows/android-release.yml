@@ -52,10 +52,12 @@ jobs:
         env:
           SECRET_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SECRET_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SECRET_SUPABASE_ACCOUNT_KEY: ${{ secrets.SUPABASE_ACCOUNT_KEY }}
         run: |
           cat <<EOF > .env
           SUPABASE_URL=${SECRET_SUPABASE_URL:-https://your-project.supabase.co}
           SUPABASE_ANON_KEY=${SECRET_SUPABASE_ANON_KEY:-your-supabase-anon-key}
+          SUPABASE_ACCOUNT_KEY=${SECRET_SUPABASE_ACCOUNT_KEY:-planflow-workspace}
           GITHUB_OWNER=${{ github.repository_owner }}
           GITHUB_REPO=${{ github.event.repository.name }}
           EOF
