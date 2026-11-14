@@ -32,14 +32,28 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Prepare Debug Keystore
+      - name: Prepare Signing Keystore (Release preferred, Debug fallback)
+        id: signing
         env:
+          SECRET_RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          SECRET_RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          SECRET_RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
           SECRET_DEBUG_KEYSTORE_BASE64: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
         run: |
+          if [ -n "${SECRET_RELEASE_KEYSTORE_BASE64}" ] && [ -n "${SECRET_RELEASE_STORE_PASSWORD}" ] && [ -n "${SECRET_RELEASE_KEY_PASSWORD}" ]; then
+            echo "${SECRET_RELEASE_KEYSTORE_BASE64}" | tr -d '\n\r ' | base64 -d > my-upload-key.jks
+            if [ -s "my-upload-key.jks" ]; then
+              echo "build_mode=release" >> "$GITHUB_OUTPUT"
+              echo "Configured signed Release APK build (non-debuggable)."
+              exit 0
+            fi
+          fi
+
+          echo "build_mode=debug" >> "$GITHUB_OUTPUT"
           if [ -n "${SECRET_DEBUG_KEYSTORE_BASE64}" ]; then
-            echo "${SECRET_DEBUG_KEYSTORE_BASE64}" | base64 -d > debug.keystore || true
+            echo "${SECRET_DEBUG_KEYSTORE_BASE64}" | tr -d '\n\r ' | base64 -d > debug.keystore || true
           elif [ -f "debug.keystore.base64" ]; then
-            base64 -d debug.keystore.base64 > debug.keystore || true
+            tr -d '\n\r ' < debug.keystore.base64 | base64 -d > debug.keystore || true
           fi
           if [ ! -s "debug.keystore" ]; then
             keytool -genkeypair -v -keystore debug.keystore \
@@ -47,6 +61,7 @@ jobs:
               -keyalg RSA -keysize 2048 -validity 10000 \
               -dname "CN=Android Debug,O=Android,C=US"
           fi
+          echo "Configured Debug APK fallback build. Tip: set RELEASE_KEYSTORE_BASE64, RELEASE_STORE_PASSWORD, and RELEASE_KEY_PASSWORD for non-debuggable Release APKs."
 
       - name: Configure .env from GitHub Secrets
         env:
@@ -77,19 +92,28 @@ jobs:
           sed -i "s/versionCode = [0-9]*/versionCode = ${GITHUB_RUN_NUMBER}/g" app/build.gradle.kts
           sed -i "s/versionName = \"[^\"]*\"/versionName = \"${VER_NAME}\"/g" app/build.gradle.kts
 
-      - name: Build Debug APK
+      - name: Build APK (${{ steps.signing.outputs.build_mode }})
         env:
           JAVA_TOOL_OPTIONS: "-Djava.awt.headless=true -Xmx4g"
+          KEYSTORE_PATH: ${{ github.workspace }}/my-upload-key.jks
+          STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
+          if [ "${{ steps.signing.outputs.build_mode }}" = "release" ]; then
+            GRADLE_TASK="assembleRelease"
+          else
+            GRADLE_TASK="assembleDebug"
+          fi
+
           if [ -f "./gradlew" ]; then
             chmod +x ./gradlew
-            ./gradlew assembleDebug \
+            ./gradlew "${GRADLE_TASK}" \
               -Dorg.gradle.configuration-cache=false \
               -Dkotlin.compiler.execution.strategy=daemon \
               -Pksp.incremental=false \
               --stacktrace
           else
-            gradle assembleDebug \
+            gradle "${GRADLE_TASK}" \
               -Dorg.gradle.configuration-cache=false \
               -Dkotlin.compiler.execution.strategy=daemon \
               -Pksp.incremental=false \
@@ -100,7 +124,11 @@ jobs:
         id: apk
         run: |
           APK_NAME="PlanFlow-${{ steps.version.outputs.tag_name }}.apk"
-          cp app/build/outputs/apk/debug/app-debug.apk "${APK_NAME}"
+          if [ "${{ steps.signing.outputs.build_mode }}" = "release" ]; then
+            cp app/build/outputs/apk/release/app-release.apk "${APK_NAME}"
+          else
+            cp app/build/outputs/apk/debug/app-debug.apk "${APK_NAME}"
+          fi
           echo "apk_path=${APK_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Publish GitHub Release with APK Asset

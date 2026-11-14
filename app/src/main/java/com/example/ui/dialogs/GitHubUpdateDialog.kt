@@ -442,6 +442,32 @@ fun GitHubUpdateDialog(
                                 fontSize = 12.sp
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.surface)
+                                .padding(horizontal = 10.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.SecurityUpdateGood,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .padding(top = 1.dp)
+                                    .size(15.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Play Protect uyarısı çıkarsa \"Diğer ayrıntılar → Yine de yükle\" seçin. Kalıcı çözüm için GitHub Secrets'a RELEASE_KEYSTORE_BASE64 ekleyip imzalı Release APK üretin.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
 
